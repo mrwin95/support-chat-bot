@@ -3,8 +3,8 @@ export interface SecurityGroupConfig {
   description: string;
   ingressRules: {
     protocol: string;
-    fromPort: string;
-    toPort: string;
+    fromPort: number;
+    toPort: number;
     cidr: string;
   }[];
 }
