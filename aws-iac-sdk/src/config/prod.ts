@@ -1,11 +1,10 @@
 import { EnvConfig } from "../models/EnvConfig";
 
-export const devConfig: EnvConfig = {
-  name: "Dev",
-  accountId: "wadmin",
-  roleArn: "arn:aws:iam::222222222222:role/ProdInfraProvisionRole",
+export const prodConfig: EnvConfig = {
+  name: "",
+  accountId: "",
+  roleArn: "",
   region: "ap-south-1",
-
   vpc: { name: "DevVPC", cidrBlock: "10.30.0.0/16" },
   subnets: [
     {
