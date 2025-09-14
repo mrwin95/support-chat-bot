@@ -1,2 +1,3 @@
 aws-iac-sdk/node_modules
 aws-iac-sdk/dist
+cdk-app/node_modules
