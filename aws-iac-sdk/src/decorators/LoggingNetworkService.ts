@@ -1,19 +1,21 @@
 import { IResource } from "../interfaces/IResource";
 
-export class LoggingNetworkService implements INetworkService {
-  constructor(private service: INetworkService) {}
+export class LoggingDecorator<TConfig> implements IResource<TConfig> {
+  constructor(private resource: IResource<TConfig>) {}
 
-  async createVpc(cidrBlock: string, name: string): Promise<string> {
-    console.log(`[LOG] Creating VPC ${name} with CIDR ${cidrBlock}`);
-    const id = await this.createVpc(cidrBlock, name);
-    console.log(`[LOG] Created VPC ${id}`);
+  async createVpc(config: TConfig): Promise<string> {
+    console.log(`[LOG] Creating: ${config}`);
+    const id = await this.resource.createVpc(config);
+    console.log(`[LOG] Created Resource ${id}`);
     return id;
   }
 
-  listVpcs(): Promise<{ vpcId: string; cidrBlock: string; name?: string }> {
-    throw new Error("Method not implemented.");
+  async listVpcs(): Promise<any[]> {
+    console.log(`[LOG] Listing resources...`);
+    return this.resource.listVpcs();
   }
-  deleteVpc(vpcId: string): Promise<void> {
-    throw new Error("Method not implemented.");
+  async deleteVpc(vpcId: string): Promise<void> {
+    console.log(`[LOG] Deleting: ${vpcId}`);
+    await this.resource.deleteVpc(vpcId);
   }
 }

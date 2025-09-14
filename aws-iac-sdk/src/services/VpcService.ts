@@ -9,10 +9,7 @@ import { VpcConfig } from "../models/VpcConfig";
 import { IResource } from "../interfaces/IResource";
 
 export class VpcService implements IResource<VpcConfig> {
-  private ec2: distTypes.EC2Client;
-  constructor(region: string) {
-    this.ec2 = new EC2Client({ region: region });
-  }
+  constructor(private ec2: EC2Client) {}
   async createVpc(config: VpcConfig): Promise<string> {
     const vpc = await this.ec2.send(
       new distTypes.CreateVpcCommand({ CidrBlock: config.cidrBlock })

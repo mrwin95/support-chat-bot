@@ -1,9 +1,17 @@
-import { LoggingNetworkService } from "./decorators/LoggingNetworkService";
+import { devConfig } from "./config/dev";
+import { LoggingDecorator } from "./decorators/LoggingNetworkService";
+import { AwsClientFactory } from "./factories/AwsClientFactory";
+import { NetworkStack } from "./orchestrators/NetworkStack";
+import { SubnetService } from "./services/SubnetService";
 import { VpcService } from "./services/VpcService";
 
 (async () => {
-  const vpcService = new LoggingNetworkService(new VpcService("ap-south-1"));
-
+  const ec2Client = AwsClientFactory.createEC2(devConfig.region);
+  const vpcService = new LoggingDecorator(new VpcService(ec2Client));
+  const subnetService = new SubnetService(ec2Client);
+  const networkStack = new NetworkStack(vpcService, subnetService);
   // 1. Create vpc
-  const vpcId = await vpcService.createVpc("10.20.0.0/16", "EKS-DEMO-VPC");
+  // provision dev
+  const vpcId = await networkStack.provision(devConfig);
+  console.log("Dev stack provisioned with vpc: ", vpcId);
 })();

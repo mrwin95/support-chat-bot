@@ -6,23 +6,23 @@ export const devConfig: EnvConfig = {
   subnets: [
     {
       name: "DevSubnetPublic1a",
-      cidrBlock: "10.0.1.0/19",
+      cidrBlock: "10.30.1.0/19",
       availabilityZone: "ap-south-1a",
     },
-    {
-      name: "DevSubnetPublic1b",
-      cidrBlock: "10.0.2.0/19",
-      availabilityZone: "ap-south-1b",
-    },
+    // {
+    //   name: "DevSubnetPublic1b",
+    //   cidrBlock: "10.0.2.0/19",
+    //   availabilityZone: "ap-south-1b",
+    // },
     {
       name: "DevSubnetPrivate1a",
-      cidrBlock: "10.0.3.0/19",
+      cidrBlock: "10.30.3.0/19",
       availabilityZone: "ap-south-1a",
     },
-    {
-      name: "DevSubnetPrivate1b",
-      cidrBlock: "10.0.4.0/19",
-      availabilityZone: "ap-south-1b",
-    },
+    // {
+    //   name: "DevSubnetPrivate1b",
+    //   cidrBlock: "10.0.4.0/19",
+    //   availabilityZone: "ap-south-1b",
+    // },
   ],
 };
