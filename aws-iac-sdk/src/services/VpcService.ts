@@ -1,15 +1,21 @@
 import distTypes = require("@aws-sdk/client-ec2");
-import type INetworkService = require("../interfaces/INetworkService");
-import { CreateTagsCommand, EC2Client } from "@aws-sdk/client-ec2";
 
-export class VpcService implements INetworkService.INetworkService {
+import {
+  CreateTagsCommand,
+  DeleteVpcCommand,
+  EC2Client,
+} from "@aws-sdk/client-ec2";
+import { VpcConfig } from "../models/VpcConfig";
+import { IResource } from "../interfaces/IResource";
+
+export class VpcService implements IResource<VpcConfig> {
   private ec2: distTypes.EC2Client;
   constructor(region: string) {
     this.ec2 = new EC2Client({ region: region });
   }
-  async createVpc(cidrBlock: string, name: string): Promise<string> {
+  async createVpc(config: VpcConfig): Promise<string> {
     const vpc = await this.ec2.send(
-      new distTypes.CreateVpcCommand({ CidrBlock: cidrBlock })
+      new distTypes.CreateVpcCommand({ CidrBlock: config.cidrBlock })
     );
     const vpcId = vpc.Vpc?.VpcId!;
 
@@ -20,20 +26,23 @@ export class VpcService implements INetworkService.INetworkService {
         Tags: [
           {
             Key: "Name",
-            Value: name,
+            Value: config.name,
           },
         ],
       })
     );
 
-    console.log(`Created VPC: ${vpcId} (${cidrBlock})`);
+    console.log(`Created VPC: ${vpcId} (${config.cidrBlock})`);
 
     return vpcId;
   }
-  listVpcs(): Promise<{ vpcId: string; cidrBlock: string; name?: string }> {
-    throw new Error("Method not implemented.");
+  async listVpcs(): Promise<any> {
+    const res = await this.ec2.send(new distTypes.DescribeVpcsCommand({}));
+    return res.Vpcs ?? [];
   }
-  deleteVpc(vpcId: string): Promise<void> {
-    throw new Error("Method not implemented.");
+
+  async deleteVpc(vpcId: string): Promise<void> {
+    await this.ec2.send(new DeleteVpcCommand({ VpcId: vpcId }));
+    console.log(`Deleted VPC: ${vpcId} (${vpcId})`);
   }
 }
