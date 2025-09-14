@@ -1,17 +1,29 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
 import { ConfigBootstrapDev } from "../lib/config/config-bootstrap-dev";
+import { NetworkStack } from "../lib/stacks/NetworkStack";
+import * as dotenv from "dotenv";
 // import { CdkAppStack } from "../lib/cdk-app-stack";
 // import { NetworkStack } from "../lib/stacks/NetworkStack";
 
+dotenv.config({ path: `env/.env.${process.env.ENV || "dev"}` });
+
 const app = new cdk.App();
+
+const envProps = {
+  account: process.env.AWS_ACCOUNT,
+  region: process.env.AWS_REGION,
+};
 
 // Deploy bootstrap dependencies
 
-new ConfigBootstrapDev(app, "ConfigBootstrapDev");
-// const network = new NetworkStack(app, "NetworkStack", {
-//   env: { region: "ap-south-1" },
-// });
+// new ConfigBootstrapDev(app, "ConfigBootstrapDev");
+const network = new NetworkStack(app, `NetworkStack-${process.env.CDK_ENV}`, {
+  env: envProps,
+  cidr: process.env.VPC_CIDR!,
+  maxAzs: Number(process.env.MAX_AZS),
+  natGateways: Number(process.env.NAT_GATEWAYS),
+});
 // new CdkAppStack(app, 'CdkAppStack', {
 /* If you don't specify 'env', this stack will be environment-agnostic.
  * Account/Region-dependent features and context lookups will not work,
