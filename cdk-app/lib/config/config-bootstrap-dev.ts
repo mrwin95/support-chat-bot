@@ -6,7 +6,7 @@ export class ConfigBootstrapDev extends ConfigBootstrapStack {
     super(scope, id, {
       envName: "dev",
       env: {
-        account: process.env.AWS_ACCOUNT,
+        account: process.env.AWS_ACCOUNT!,
         region: process.env.AWS_REGION!,
       },
     });
