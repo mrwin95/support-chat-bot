@@ -3,6 +3,7 @@ import { devConfig } from "./config/dev";
 import { AwsClientFactory } from "./factories/AwsClientFactory";
 import { NetworkStack } from "./orchestrators/NetworkStack";
 import { InternetGatewayService } from "./services/InternetGatewayService";
+import { NatGatewayService } from "./services/NatGatewayService";
 import { RouteTableService } from "./services/RouteTableService";
 import { SecurityGroupService } from "./services/SecurityGroupService";
 import { SubnetService } from "./services/SubnetService";
@@ -17,7 +18,8 @@ import { VpcService } from "./services/VpcService";
     new SubnetService(ec2Client),
     new SecurityGroupService(ec2Client),
     new InternetGatewayService(ec2Client),
-    new RouteTableService(ec2Client)
+    new RouteTableService(ec2Client),
+    new NatGatewayService(ec2Client)
   );
   // 1. Create vpc
   // provision dev

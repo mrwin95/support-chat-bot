@@ -36,9 +36,33 @@ export function loadConfig(): EnvConfig {
             type: "public",
           },
           {
+            cidrBlock: "10.20.144.0/20",
+            name: "DevSubnetPublicB",
+            availabilityZone: `${process.env.DEV_REGION}b`,
+            type: "public",
+          },
+          {
+            cidrBlock: "10.20.160.0/20",
+            name: "DevSubnetPublicC",
+            availabilityZone: `${process.env.DEV_REGION}c`,
+            type: "public",
+          },
+          {
             cidrBlock: "10.20.0.0/19",
+            name: "DevSubnetPrivateA",
+            availabilityZone: `${process.env.DEV_REGION}a`,
+            type: "private",
+          },
+          {
+            cidrBlock: "10.20.32.0/19",
             name: "DevSubnetPrivateB",
             availabilityZone: `${process.env.DEV_REGION}b`,
+            type: "private",
+          },
+          {
+            cidrBlock: "10.20.64.0/19",
+            name: "DevSubnetPrivateC",
+            availabilityZone: `${process.env.DEV_REGION}c`,
             type: "private",
           },
         ],
@@ -52,11 +76,13 @@ export function loadConfig(): EnvConfig {
             ],
           },
         ],
+        natGateway: {
+          name: "DevNatGW",
+          subnetName: "DevSubnetPublicA",
+        },
       };
 
     default:
       throw new Error(`❌ Unknown environment: ${env}`);
   }
-  //   console.log(`Loaded ${env.toLocaleLowerCase()} environment`);
-  //   return configs[env];
 }

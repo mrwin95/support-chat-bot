@@ -2,6 +2,8 @@ import { IResource } from "../interfaces/IResource";
 import { EnvConfig } from "../models/EnvConfig";
 import { VpcConfig } from "../models/VpcConfig";
 import { InternetGatewayService } from "../services/InternetGatewayService";
+import { NatGatewayService } from "../services/NatGatewayService";
+
 import { RouteTableService } from "../services/RouteTableService";
 import { SecurityGroupService } from "../services/SecurityGroupService";
 import { SubnetService } from "../services/SubnetService";
@@ -12,7 +14,8 @@ export class NetworkStack {
     private subnetService: SubnetService,
     private sgService: SecurityGroupService,
     private igwService: InternetGatewayService,
-    private rtService: RouteTableService
+    private rtService: RouteTableService,
+    private natService: NatGatewayService
   ) {}
 
   async provision(env: EnvConfig) {
@@ -26,13 +29,15 @@ export class NetworkStack {
       `${env.name}-igw`
     );
 
-    const subnetIds: string[] = [];
+    // const subnetIds: string[] = [];
+    const subnetIds: Record<string, string> = {};
     const publicSubnets: string[] = [];
     const privateSubnets: string[] = [];
 
     for (const subnet of env.subnets) {
       const subnetId = await this.subnetService.create({ ...subnet, vpcId });
-      subnetIds.push(subnetId);
+      //   subnetIds.push(subnetId);
+      subnetIds[subnet.name] = subnetId;
 
       if (subnet.type === "public") publicSubnets.push(subnetId);
       else privateSubnets.push(subnetId);
@@ -62,13 +67,23 @@ export class NetworkStack {
       await this.rtService.associate(privateRtId, subnetId);
     }
 
+    let natId: string | undefined;
+
+    if (env.natGateway) {
+      const subnetId = subnetIds[env.natGateway.subnetName];
+      if (subnetId) {
+        natId = await this.natService.create(subnetId, env.natGateway.name);
+        await this.rtService.addNatRoute(privateRtId, natId);
+      }
+    }
+
     const sgIds: string[] = [];
     for (const sg of env.securityGroups) {
       const sgId = await this.sgService.create({ ...sg, vpcId });
       sgIds.push(sgId);
     }
 
-    return { vpcId, igwId, subnetIds, publicRtId, privateRtId, sgIds };
+    return { vpcId, igwId, natId, subnetIds, publicRtId, privateRtId, sgIds };
   }
 
   async destroy(vpcId: string) {

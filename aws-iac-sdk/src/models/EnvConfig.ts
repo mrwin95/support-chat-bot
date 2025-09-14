@@ -1,3 +1,4 @@
+import { NatGatewayConfig } from "./NatGatewayConfig";
 import { SecurityGroupConfig } from "./SecurityGroupConfig";
 import { SubnetConfig } from "./SubnetConfig";
 import { VpcConfig } from "./VpcConfig";
@@ -10,4 +11,6 @@ export interface EnvConfig {
   vpc: VpcConfig;
   subnets: SubnetConfig[];
   securityGroups: SecurityGroupConfig[];
+  //   natGateway?: Record<string, NatGatewayConfig>;
+  natGateway?: NatGatewayConfig;
 }
