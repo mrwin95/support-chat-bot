@@ -6,6 +6,7 @@
     "scripts": {
         "dev": "node-ts .",
         "build": "tsc",
+        "deploy": "ENV=dev npx ts-node src/app.ts",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [],

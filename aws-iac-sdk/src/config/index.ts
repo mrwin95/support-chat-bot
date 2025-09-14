@@ -27,17 +27,17 @@ export function loadConfig(): EnvConfig {
         accountId: process.env.DEV_ACCOUNT_ID!,
         roleArn: process.env.DEV_ROLE_ARN!,
         region: process.env.DEV_REGION!,
-        vpc: { cidrBlock: "10.40.0.0/16", name: "DevVPC" },
+        vpc: { cidrBlock: "10.20.0.0/16", name: "DevVPC" },
         subnets: [
           {
-            cidrBlock: "10.40.1.0/20",
+            cidrBlock: "10.20.128.0/20",
             name: "DevSubnetPublicA",
             availabilityZone: `${process.env.DEV_REGION}a`,
             type: "public",
           },
           {
-            cidrBlock: "10.40.2.0/19",
-            name: "DevSubnetPrivateA",
+            cidrBlock: "10.20.0.0/19",
+            name: "DevSubnetPrivateB",
             availabilityZone: `${process.env.DEV_REGION}b`,
             type: "private",
           },

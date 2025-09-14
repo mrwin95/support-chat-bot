@@ -39,8 +39,8 @@ export class SecurityGroupService {
           IpPermissions: [
             {
               IpProtocol: rule.protocol,
-              FromPort: Number(rule.fromPort),
-              ToPort: Number(rule.toPort),
+              FromPort: rule.fromPort,
+              ToPort: rule.toPort,
               IpRanges: [{ CidrIp: rule.cidr }],
             },
           ],

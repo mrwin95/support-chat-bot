@@ -6,12 +6,13 @@ export const devConfig: EnvConfig = {
   roleArn: "arn:aws:iam::222222222222:role/ProdInfraProvisionRole",
   region: "ap-south-1",
 
-  vpc: { name: "DevVPC", cidrBlock: "10.30.0.0/16" },
+  vpc: { name: "DevVPC", cidrBlock: "10.20.0.0/16" },
   subnets: [
     {
       name: "DevSubnetPublic1a",
-      cidrBlock: "10.30.1.0/19",
+      cidrBlock: "10.20.128.0/20",
       availabilityZone: "ap-south-1a",
+      type: "public",
     },
     // {
     //   name: "DevSubnetPublic1b",
@@ -20,8 +21,9 @@ export const devConfig: EnvConfig = {
     // },
     {
       name: "DevSubnetPrivate1a",
-      cidrBlock: "10.30.3.0/19",
+      cidrBlock: "10.20.0.0/19",
       availabilityZone: "ap-south-1a",
+      type: "private",
     },
     // {
     //   name: "DevSubnetPrivate1b",
@@ -36,14 +38,14 @@ export const devConfig: EnvConfig = {
       ingressRules: [
         {
           protocol: "tcp",
-          fromPort: "80",
-          toPort: "80",
+          fromPort: 80,
+          toPort: 80,
           cidr: "0.0.0.0/0",
         },
         {
           protocol: "tcp",
-          fromPort: "443",
-          toPort: "443",
+          fromPort: 443,
+          toPort: 443,
           cidr: "0.0.0.0/0",
         },
       ],
