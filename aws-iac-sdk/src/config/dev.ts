@@ -29,4 +29,24 @@ export const devConfig: EnvConfig = {
     //   availabilityZone: "ap-south-1b",
     // },
   ],
+  securityGroups: [
+    {
+      name: "DevWebSG",
+      description: "Allow HTTP/HTTPS",
+      ingressRules: [
+        {
+          protocol: "tcp",
+          fromPort: "80",
+          toPort: "80",
+          cidr: "0.0.0.0/0",
+        },
+        {
+          protocol: "tcp",
+          fromPort: "443",
+          toPort: "443",
+          cidr: "0.0.0.0/0",
+        },
+      ],
+    },
+  ],
 };
