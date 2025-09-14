@@ -21,6 +21,7 @@ export class NetworkStack {
   async provision(env: EnvConfig) {
     console.log(`Provisioning network stack for ${env.name} in ${env.region}`);
 
+    // const vpcId = await this.vpcService.createVpc(env.vpc);
     const vpcId = await this.vpcService.createVpc(env.vpc);
 
     // 2.
