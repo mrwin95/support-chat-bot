@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
 import { ConfigBootstrapDev } from "../lib/config/config-bootstrap-dev";
-import { NetworkStack } from "../lib/stacks/NetworkStack";
+// import { NetworkStack } from "../lib/stacks/NetworkStack";
 import * as dotenv from "dotenv";
+import { NetworkStack } from "../lib/stacks/network-stack";
 // import { CdkAppStack } from "../lib/cdk-app-stack";
 // import { NetworkStack } from "../lib/stacks/NetworkStack";
 
@@ -18,12 +19,16 @@ const envProps = {
 // Deploy bootstrap dependencies
 
 // new ConfigBootstrapDev(app, "ConfigBootstrapDev");
-const network = new NetworkStack(app, `NetworkStack-${process.env.CDK_ENV}`, {
-  env: envProps,
-  cidr: process.env.VPC_CIDR!,
-  maxAzs: Number(process.env.MAX_AZS),
-  natGateways: Number(process.env.NAT_GATEWAYS),
-});
+// const network = new NetworkStack(app, `NetworkStack-${process.env.CDK_ENV}`, {
+//   env: envProps,
+//   cidr: process.env.VPC_CIDR!,
+//   maxAzs: Number(process.env.MAX_AZS),
+//   natGateways: Number(process.env.NAT_GATEWAYS),
+// });
+
+const network = new NetworkStack(app, 'NetworkStack', {
+    
+})
 // new CdkAppStack(app, 'CdkAppStack', {
 /* If you don't specify 'env', this stack will be environment-agnostic.
  * Account/Region-dependent features and context lookups will not work,
