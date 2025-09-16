@@ -1,8 +1,7 @@
-import * as ec2 from "aws-cdk-lib/aws-ec2";
-import { ISubnetConfig } from "./ISubnetConfig";
 export interface INetworkConfig {
-  ipAddresses: ec2.IIpAddresses;
+  cidr: string;
   maxAzs: number;
-  natGateways: number;
-  //   subnetConfiguration: ISubnetConfig[];
+  natGateways?: number;
+  publicCidrs: string[];
+  privateCidrs: string[];
 }

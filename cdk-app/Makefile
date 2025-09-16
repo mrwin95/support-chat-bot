@@ -44,7 +44,7 @@ deploy:
 	npx cdk deploy --require-approval never
 destroy:
 	@echo "Destroying stack for $(ENV) environment..."
-	npx cdk synth
+	npx cdk destroy
 logs:
 	@echo "Fetching Cloudwatch logs..."
 	aws logs describe-log-groups --region $(AWS_REGION)
