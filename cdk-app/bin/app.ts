@@ -1,11 +1,8 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
-import { ConfigBootstrapDev } from "../lib/config/config-bootstrap-dev";
-// import { NetworkStack } from "../lib/stacks/NetworkStack";
 import * as dotenv from "dotenv";
 import { NetworkStack } from "../lib/stacks/network-stack";
-// import { CdkAppStack } from "../lib/cdk-app-stack";
-// import { NetworkStack } from "../lib/stacks/NetworkStack";
+import { EksStack } from "../lib/stacks/eks-stack";
 
 dotenv.config({ path: `env/.env.${process.env.ENV || "dev"}` });
 
@@ -16,20 +13,14 @@ const envProps = {
   region: process.env.AWS_REGION,
 };
 
-// Deploy bootstrap dependencies
-
-// new ConfigBootstrapDev(app, "ConfigBootstrapDev");
-// const network = new NetworkStack(app, `NetworkStack-${process.env.CDK_ENV}`, {
-//   env: envProps,
-//   cidr: process.env.VPC_CIDR!,
-//   maxAzs: Number(process.env.MAX_AZS),
-//   natGateways: Number(process.env.NAT_GATEWAYS),
-// });
-
 const networkStack = new NetworkStack(app, "NetworkStack", {
   env: envProps,
 });
 
+new EksStack(app, "EksStack", {
+  vpc: networkStack.vpc,
+  env: envProps,
+});
 // const network = new NetworkStack(app, 'NetworkStack', {
 
 // })

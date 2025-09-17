@@ -42,6 +42,14 @@ diff:
 deploy:
 	@echo "Deploying to $(ENV) environment..."
 	npx cdk deploy --require-approval never
+deploy-vpc:
+	@echo "Deploying to $(ENV) environment..."
+	npx cdk deploy NetworkStack --require-approval never
+
+deploy-eks:
+	@echo "Deploying to $(ENV) environment..."
+	npx cdk deploy EksStack --require-approval never
+
 destroy:
 	@echo "Destroying stack for $(ENV) environment..."
 	npx cdk destroy
