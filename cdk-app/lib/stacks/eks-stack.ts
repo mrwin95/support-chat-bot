@@ -24,10 +24,12 @@ export class EksStack extends Stack {
     const eksConstruct = new EksConstruct(this, "Eks", props.vpc, {
       clusterName: "solid-eks",
       version: eks.KubernetesVersion.V1_33,
+
       desiredCapacity: 2,
       instanceType: new ec2.InstanceType("t2.small"),
       workerRole: iamConstruct.workerAdminRole,
       adminRole: iamConstruct.eksAdminRole,
+      vpcSubnets: [],
     });
   }
 }

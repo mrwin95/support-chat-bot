@@ -14,6 +14,7 @@ export interface EksConfig {
   instanceType: ec2.InstanceType;
   workerRole: iam.Role;
   adminRole: iam.Role;
+  vpcSubnets: ec2.SubnetSelection[];
 }
 
 export class EksConstruct extends Construct {
@@ -27,16 +28,8 @@ export class EksConstruct extends Construct {
       clusterName: config.clusterName,
       version: config.version,
       defaultCapacity: 0,
-      vpcSubnets: [
-        // solve public subnet group issue
-        {
-          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS, // worker
-        },
-        {
-          subnetType: ec2.SubnetType.PUBLIC,
-        },
-      ],
       kubectlLayer: new kubectl.KubectlV33Layer(this, "KubectlV33Layer"),
+      vpcSubnets: config.vpcSubnets,
     });
 
     // map iam admin role to kubernetes
@@ -49,7 +42,8 @@ export class EksConstruct extends Construct {
       minSize: 1,
       maxSize: 4,
       instanceTypes: [config.instanceType],
-      subnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+      subnets: config.vpcSubnets[0],
+      amiType: eks.NodegroupAmiType.AL2023_X86_64_STANDARD, // 1.33 //BOTTLEROCKET_X86_64 container
     });
   }
 }

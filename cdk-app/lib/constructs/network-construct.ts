@@ -1,13 +1,12 @@
 import { Construct } from "constructs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import { INetworkConfig } from "../interfaces/INetworkConfig";
-import { VpcConstruct } from "./vpc-construct";
-import { RoutingConstruct } from "./routing-construct";
-import { NatGatewayConstruct } from "./natgateway-construct";
-import { SubnetConstruct } from "./subnet-construct";
+import { Tags } from "aws-cdk-lib";
 
 export class NetworkConstruct extends Construct {
   public readonly vpc: ec2.Vpc;
+  public readonly publicSubnets: ec2.ISubnet[] = [];
+  public readonly privateSubnets: ec2.ISubnet[] = [];
 
   constructor(scope: Construct, id: string, config: INetworkConfig) {
     super(scope, id);
@@ -21,6 +20,13 @@ export class NetworkConstruct extends Construct {
       natGateways: 0, // we handle NAT manually
     });
 
+    // apply tag
+    if (config.tags) {
+      for (const [k, v] of Object.entries(config.tags)) {
+        Tags.of(this.vpc).add(k, v);
+      }
+    }
+
     // Internet Gateway
     const igw = new ec2.CfnInternetGateway(this, "InternetGateway", {
       tags: [
@@ -31,13 +37,22 @@ export class NetworkConstruct extends Construct {
         { key: "Environment", value: "dev" },
       ],
     });
+
     new ec2.CfnVPCGatewayAttachment(this, "IGWAttachment", {
       vpcId: this.vpc.vpcId,
       internetGatewayId: igw.ref,
     });
 
     // Public Subnets
-    const publicSubnets: ec2.CfnSubnet[] = [];
+    const publicSubnetsRaw: ec2.CfnSubnet[] = [];
+    const publicRT = new ec2.CfnRouteTable(this, "PublicRouteTable", {
+      vpcId: this.vpc.vpcId,
+      tags: [
+        { key: "Name", value: "public-route-table" },
+        { key: "Environment", value: "dev" },
+      ],
+    });
+
     config.publicSubnetCidrs.forEach((cidr, index) => {
       const subnet = new ec2.CfnSubnet(this, `PublicSubnet${index + 1}`, {
         vpcId: this.vpc.vpcId,
@@ -48,25 +63,32 @@ export class NetworkConstruct extends Construct {
           { key: "Name", value: `public-subnet-${index + 1}` },
           { key: "Environment", value: "dev" },
           { key: "Type", value: "public" },
+          ...(config.tags
+            ? Object.entries(config.tags).map(([k, v]) => ({ key: k, value: v }))
+            : []),
         ],
       });
-      publicSubnets.push(subnet);
+      publicSubnetsRaw.push(subnet);
+      // Public Route Table
+
+      // wrap as subnet for selections
+
+      this.publicSubnets.push(
+        ec2.Subnet.fromSubnetAttributes(this, `PubSubnetRef${index + 1}`, {
+          subnetId: subnet.ref,
+          availabilityZone: this.vpc.availabilityZones[index],
+          routeTableId: publicRT.ref,
+        })
+      );
     });
 
-    // Public Route Table
-    const publicRT = new ec2.CfnRouteTable(this, "PublicRouteTable", {
-      vpcId: this.vpc.vpcId,
-      tags: [
-        { key: "Name", value: "public-route-table" },
-        { key: "Environment", value: "dev" },
-      ],
-    });
     new ec2.CfnRoute(this, "DefaultPublicRoute", {
       routeTableId: publicRT.ref,
       destinationCidrBlock: "0.0.0.0/0",
       gatewayId: igw.ref,
     });
-    publicSubnets.forEach((subnet, i) => {
+
+    publicSubnetsRaw.forEach((subnet, i) => {
       new ec2.CfnSubnetRouteTableAssociation(this, `PublicSubnetAssoc${i + 1}`, {
         routeTableId: publicRT.ref,
         subnetId: subnet.ref,
@@ -75,7 +97,7 @@ export class NetworkConstruct extends Construct {
 
     // NAT Gateways (limit by natGateways param)
     const natGateways: ec2.CfnNatGateway[] = [];
-    for (let i = 0; i < config.natGateways && i < publicSubnets.length; i++) {
+    for (let i = 0; i < config.natGateways && i < publicSubnetsRaw.length; i++) {
       const eip = new ec2.CfnEIP(this, `NatEip${i + 1}`, {
         domain: "vpc",
         tags: [
@@ -87,7 +109,7 @@ export class NetworkConstruct extends Construct {
         ],
       });
       const natGw = new ec2.CfnNatGateway(this, `NatGateway${i + 1}`, {
-        subnetId: publicSubnets[i].ref,
+        subnetId: publicSubnetsRaw[i].ref,
         allocationId: eip.attrAllocationId,
         tags: [
           { key: "Name", value: `nat-gateway-${i + 1}` },
@@ -108,6 +130,9 @@ export class NetworkConstruct extends Construct {
           { key: "Name", value: `private-subnet-${index + 1}` },
           { key: "Environment", value: "dev" },
           { key: "Type", value: "private" },
+          ...(config.tags
+            ? Object.entries(config.tags).map(([k, v]) => ({ key: k, value: v }))
+            : []),
         ],
       });
 
@@ -119,14 +144,23 @@ export class NetworkConstruct extends Construct {
         ],
       });
 
+      this.privateSubnets.push(
+        ec2.Subnet.fromSubnetAttributes(this, `PrivSubnetRef${index + 1}`, {
+          subnetId: subnet.ref,
+          availabilityZone: this.vpc.availabilityZones[index],
+          routeTableId: rt.ref,
+        })
+      );
+
       // Choose NAT Gateway (map private subnet AZ → NAT in same AZ if exists)
       const natIndex = index < natGateways.length ? index : 0; // fallback to first NAT
-      new ec2.CfnRoute(this, `PrivateRoute${index + 1}`, {
-        routeTableId: rt.ref,
-        destinationCidrBlock: "0.0.0.0/0",
-        natGatewayId: natGateways[natIndex].ref,
-      });
-
+      if (natGateways.length > 0) {
+        new ec2.CfnRoute(this, `PrivateRoute${index + 1}`, {
+          routeTableId: rt.ref,
+          destinationCidrBlock: "0.0.0.0/0",
+          natGatewayId: natGateways[natIndex].ref,
+        });
+      }
       new ec2.CfnSubnetRouteTableAssociation(
         this,
         `PrivateSubnetAssoc${index + 1}`,
@@ -136,5 +170,13 @@ export class NetworkConstruct extends Construct {
         }
       );
     });
+  }
+
+  // subnet selection for downstream
+  public subnetSelections() {
+    return {
+      public: { subnets: this.publicSubnets },
+      private: { subnets: this.privateSubnets },
+    };
   }
 }
