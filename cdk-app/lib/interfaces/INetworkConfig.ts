@@ -1,7 +1,7 @@
 export interface INetworkConfig {
   cidr: string;
+  publicSubnetCidrs: string[];
+  privateSubnetCidrs: string[];
   maxAzs: number;
-  natGateways?: number;
-  publicCidrs: string[];
-  privateCidrs: string[];
+  natGateways: number; // new: how many NAT gateways you want
 }

@@ -20,3 +20,6 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 # install core cdk and construct
 npm install aws-cdk-lib constructs
 
+install kubectl Layer
+
+npm install @aws-cdk/lambda-layer-kubectl-v32

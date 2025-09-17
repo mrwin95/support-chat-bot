@@ -1,63 +1,90 @@
 import { Construct } from "constructs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+export interface RoutingConstructProps {
+  vpc: ec2.IVpc;
+  publicSubnets: ec2.ISubnet[];
+  privateSubnets: ec2.ISubnet[];
+  natGateways: ec2.CfnNatGateway[];
+}
 export class RoutingConstruct extends Construct {
   public readonly publicRt: ec2.CfnRouteTable;
   public readonly privateRt: ec2.CfnRouteTable;
-  constructor(
-    scope: Construct,
-    id: string,
-    vpc: ec2.Vpc,
-    publicSubnets: ec2.Subnet[],
-    privateSubnets: ec2.Subnet[],
-    natGw?: ec2.CfnNatGateway
-  ) {
+  constructor(scope: Construct, id: string, props: RoutingConstructProps) {
     super(scope, id);
 
     // iGW
 
     const igw = new ec2.CfnInternetGateway(this, "InternetGateway");
     new ec2.CfnVPCGatewayAttachment(this, "VpcIgwAttachment", {
-      vpcId: vpc.vpcId,
+      vpcId: props.vpc.vpcId,
       internetGatewayId: igw.ref,
     });
 
-    // public route table
-    this.publicRt = new ec2.CfnRouteTable(this, "PublicRouteTable", {
-      vpcId: vpc.vpcId,
+    // public route table (share)
+    const publicRt = new ec2.CfnRouteTable(this, "PublicRouteTable", {
+      vpcId: props.vpc.vpcId,
     });
 
     new ec2.CfnRoute(this, "PublicDefaultRoute", {
-      routeTableId: this.publicRt.ref,
+      routeTableId: publicRt.ref,
       destinationCidrBlock: "0.0.0.0/0",
       gatewayId: igw.ref,
     });
-
-    // associate public subnet
-    publicSubnets.forEach((s, i) => {
+    props.publicSubnets.forEach((subnet, i) => {
       new ec2.CfnSubnetRouteTableAssociation(this, `PublicAssoc${i + 1}`, {
-        routeTableId: this.publicRt.ref,
-        subnetId: s.subnetId,
+        subnetId: subnet.subnetId,
+        routeTableId: publicRt.ref,
       });
     });
+
+    // new ec2.CfnRoute(this, "PublicDefaultRoute", {
+    //   routeTableId: this.publicRt.ref,
+    //   destinationCidrBlock: "0.0.0.0/0",
+    //   gatewayId: igw.ref,
+    // });
+
+    // associate public subnet
+    // publicSubnets.forEach((s, i) => {
+    //   new ec2.CfnSubnetRouteTableAssociation(this, `PublicAssoc${i + 1}`, {
+    //     routeTableId: this.publicRt.ref,
+    //     subnetId: s.subnetId,
+    //   });
+    // });
 
     // private route table
-    this.privateRt = new ec2.CfnRouteTable(this, "PrivateRouteTable", {
-      vpcId: vpc.vpcId,
+    // Private RT per AZ → NAT in same index
+    props.privateSubnets.forEach((subnet, i) => {
+      const rt = new ec2.CfnRouteTable(this, `PrivateRouteTable-${i + 1}`, {
+        vpcId: props.vpc.vpcId,
+      });
+      new ec2.CfnRoute(this, `PrivateDefaultRoute-${i + 1}`, {
+        routeTableId: rt.ref,
+        destinationCidrBlock: "0.0.0.0/0",
+        natGatewayId: props.natGateways[i % props.natGateways.length].ref,
+      });
+      new ec2.CfnSubnetRouteTableAssociation(this, `PrivateAssoc-${i + 1}`, {
+        subnetId: subnet.subnetId,
+        routeTableId: rt.ref,
+      });
     });
 
-    if (natGw) {
-      new ec2.CfnRoute(this, "PrivateDefaultRoute", {
-        routeTableId: this.privateRt.ref,
-        destinationCidrBlock: "0.0.0.0/0",
-        gatewayId: igw.ref,
-      });
-    }
-    // associate public subnet
-    privateSubnets.forEach((s, i) => {
-      new ec2.CfnSubnetRouteTableAssociation(this, `PrivateAssoc${i + 1}`, {
-        routeTableId: this.privateRt.ref,
-        subnetId: s.subnetId,
-      });
-    });
+    // const privateRt = new ec2.CfnRouteTable(this, "PrivateRouteTable", {
+    //   vpcId: vpc.vpcId,
+    // });
+
+    // if (natGw) {
+    //   new ec2.CfnRoute(this, "PrivateDefaultRoute", {
+    //     routeTableId: this.privateRt.ref,
+    //     destinationCidrBlock: "0.0.0.0/0",
+    //     gatewayId: igw.ref,
+    //   });
+    // }
+    // // associate public subnet
+    // privateSubnets.forEach((s, i) => {
+    //   new ec2.CfnSubnetRouteTableAssociation(this, `PrivateAssoc${i + 1}`, {
+    //     routeTableId: this.privateRt.ref,
+    //     subnetId: s.subnetId,
+    //   });
+    // });
   }
 }

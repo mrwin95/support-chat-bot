@@ -26,9 +26,13 @@ const envProps = {
 //   natGateways: Number(process.env.NAT_GATEWAYS),
 // });
 
-const network = new NetworkStack(app, 'NetworkStack', {
-    
-})
+const networkStack = new NetworkStack(app, "NetworkStack", {
+  env: envProps,
+});
+
+// const network = new NetworkStack(app, 'NetworkStack', {
+
+// })
 // new CdkAppStack(app, 'CdkAppStack', {
 /* If you don't specify 'env', this stack will be environment-agnostic.
  * Account/Region-dependent features and context lookups will not work,
