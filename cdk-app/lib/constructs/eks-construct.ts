@@ -13,6 +13,7 @@ export interface EksConstructProps {
   workerRole: iam.IRole;
   adminRole: iam.IRole;
   vpcSubnets?: ec2.SubnetSelection[];
+  workerNodeNameTag?: string;
 }
 
 export class EksConstruct extends Construct {

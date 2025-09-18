@@ -27,22 +27,5 @@ export class NetworkStack extends Stack {
     console.log(`Start stack create vpc ${network}`);
 
     this.network = network;
-    // IAM Roles
-    // const iamConstruct = new IamConstruct(this, "iam", {
-    //   roleName: "eks-admin-role",
-    //   userArns: ["arn:aws:iam::442042528400:role/DevInfraRole"],
-    // });
-
-    // EKS Cluster + Workers
-    // const eksConstruct = new EksConstruct(this, "Eks", network.vpc, {
-    //   clusterName: "solid-eks",
-    //   version: eks.KubernetesVersion.V1_33,
-
-    //   desiredCapacity: 2,
-    //   instanceType: new ec2.InstanceType("t3.small"),
-    //   workerRole: iamConstruct.workerAdminRole,
-    //   adminRole: iamConstruct.eksAdminRole,
-    //   vpcSubnets: [network.subnetSelections().private],
-    // });
   }
 }

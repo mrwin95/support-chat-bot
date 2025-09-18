@@ -14,8 +14,11 @@ export class IamStack extends Stack {
       workerRoleName: props.workerRoleName,
       ssmPrefix: props.ssmPrefix,
       importOnly: false,
+      roleTags: {
+        Environment: "dev",
+        Project: "solid-eks",
+      },
     });
-
     // Export ARNs so other stacks can import if needed
   }
 }

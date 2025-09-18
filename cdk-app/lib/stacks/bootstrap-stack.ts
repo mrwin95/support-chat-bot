@@ -4,7 +4,6 @@ import { IamStack } from "./iam-stack";
 import { EksStack } from "./eks-stack";
 import * as eks from "aws-cdk-lib/aws-eks";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
-import { IamConstruct } from "../constructs/iam-construct";
 
 export function bootstrap(app: App, envProps: {}) {
   const ssmPrefix = "/solid/dev/roles/";

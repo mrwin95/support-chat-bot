@@ -1,7 +1,7 @@
 import { Construct } from "constructs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as ssm from "aws-cdk-lib/aws-ssm";
-import { CfnOutput, Stack } from "aws-cdk-lib";
+import { CfnOutput, Stack, Tags } from "aws-cdk-lib";
 
 export interface IamConstructProps {
   adminRoleName: string;
@@ -9,6 +9,7 @@ export interface IamConstructProps {
   ssmPrefix?: string;
   //   userArns?: string[];
   importOnly?: boolean; // 👈 new flag to indicate "just import" mode
+  roleTags?: { [Key: string]: string };
 }
 export class IamConstruct extends Construct {
   public readonly adminRole: iam.IRole;
@@ -105,6 +106,18 @@ export class IamConstruct extends Construct {
       ],
     });
 
+    // set tags
+
+    if (config.roleTags) {
+      for (const [k, v] of Object.entries(config.roleTags)) {
+        Tags.of(this.adminRole).add(k, v);
+        Tags.of(this.workerRole).add(k, v);
+      }
+    }
+
+    // Always set Name ta
+    Tags.of(this.adminRole).add("Name", `${config.adminRoleName}`);
+    Tags.of(this.workerRole).add("Name", `${config.workerRoleName}`);
     // store newly create to ARNS
 
     if (config.ssmPrefix) {
