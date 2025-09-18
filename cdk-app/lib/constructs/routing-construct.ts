@@ -37,20 +37,6 @@ export class RoutingConstruct extends Construct {
       });
     });
 
-    // new ec2.CfnRoute(this, "PublicDefaultRoute", {
-    //   routeTableId: this.publicRt.ref,
-    //   destinationCidrBlock: "0.0.0.0/0",
-    //   gatewayId: igw.ref,
-    // });
-
-    // associate public subnet
-    // publicSubnets.forEach((s, i) => {
-    //   new ec2.CfnSubnetRouteTableAssociation(this, `PublicAssoc${i + 1}`, {
-    //     routeTableId: this.publicRt.ref,
-    //     subnetId: s.subnetId,
-    //   });
-    // });
-
     // private route table
     // Private RT per AZ → NAT in same index
     props.privateSubnets.forEach((subnet, i) => {
@@ -67,24 +53,5 @@ export class RoutingConstruct extends Construct {
         routeTableId: rt.ref,
       });
     });
-
-    // const privateRt = new ec2.CfnRouteTable(this, "PrivateRouteTable", {
-    //   vpcId: vpc.vpcId,
-    // });
-
-    // if (natGw) {
-    //   new ec2.CfnRoute(this, "PrivateDefaultRoute", {
-    //     routeTableId: this.privateRt.ref,
-    //     destinationCidrBlock: "0.0.0.0/0",
-    //     gatewayId: igw.ref,
-    //   });
-    // }
-    // // associate public subnet
-    // privateSubnets.forEach((s, i) => {
-    //   new ec2.CfnSubnetRouteTableAssociation(this, `PrivateAssoc${i + 1}`, {
-    //     routeTableId: this.privateRt.ref,
-    //     subnetId: s.subnetId,
-    //   });
-    // });
   }
 }

@@ -1,10 +1,8 @@
 import { Construct } from "constructs";
-import { IEksConfig } from "../interfaces/IEksConfig";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
-import { EksClusterConstruct } from "./eks-cluster-construct";
-import { EksNodeGroupConstruct } from "./eks-nodegroup-construct";
 import * as eks from "aws-cdk-lib/aws-eks";
-import * as kubectl from "@aws-cdk/lambda-layer-kubectl-v33";
+import * as kubectl33 from "@aws-cdk/lambda-layer-kubectl-v33";
+import * as kubectl32 from "@aws-cdk/lambda-layer-kubectl-v32";
 import * as iam from "aws-cdk-lib/aws-iam";
 
 export interface EksConfig {
@@ -28,7 +26,7 @@ export class EksConstruct extends Construct {
       clusterName: config.clusterName,
       version: config.version,
       defaultCapacity: 0,
-      kubectlLayer: new kubectl.KubectlV33Layer(this, "KubectlV33Layer"),
+      kubectlLayer: new kubectl33.KubectlV33Layer(this, "KubectlV33Layer"),
       vpcSubnets: config.vpcSubnets,
     });
 
@@ -37,6 +35,7 @@ export class EksConstruct extends Construct {
     // node group
 
     this.cluster.addNodegroupCapacity("EksWorkers", {
+      nodegroupName: `${config.clusterName}-solid-workers`,
       nodeRole: config.workerRole,
       desiredSize: config.desiredCapacity,
       minSize: 1,
@@ -44,6 +43,10 @@ export class EksConstruct extends Construct {
       instanceTypes: [config.instanceType],
       subnets: config.vpcSubnets[0],
       amiType: eks.NodegroupAmiType.AL2023_X86_64_STANDARD, // 1.33 //BOTTLEROCKET_X86_64 container
+      tags: {
+        [`kubernetes.io/cluster/${config.clusterName}`]: "owned",
+        Name: `${config.clusterName}-worker`,
+      },
     });
   }
 }

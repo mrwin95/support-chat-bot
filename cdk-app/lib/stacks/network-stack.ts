@@ -8,6 +8,7 @@ import * as eks from "aws-cdk-lib/aws-eks";
 
 export class NetworkStack extends Stack {
   public readonly vpc: ec2.IVpc;
+  public readonly network: NetworkConstruct;
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
@@ -24,6 +25,7 @@ export class NetworkStack extends Stack {
 
     console.log(`Start stack create vpc ${network}`);
 
+    this.network = network;
     // IAM Roles
     const iamConstruct = new IamConstruct(this, "iam", {
       roleName: "eks-admin-role",
@@ -36,7 +38,7 @@ export class NetworkStack extends Stack {
       version: eks.KubernetesVersion.V1_33,
 
       desiredCapacity: 2,
-      instanceType: new ec2.InstanceType("t2.small"),
+      instanceType: new ec2.InstanceType("t3.small"),
       workerRole: iamConstruct.workerAdminRole,
       adminRole: iamConstruct.eksAdminRole,
       vpcSubnets: [network.subnetSelections().private],

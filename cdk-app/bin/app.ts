@@ -17,10 +17,10 @@ const networkStack = new NetworkStack(app, "NetworkStack", {
   env: envProps,
 });
 
-// new EksStack(app, "EksStack", {
-//   vpc: networkStack.vpc,
+// new EksStack(app, "EksStack", networkStack.network, {
 //   env: envProps,
 // });
+
 // const network = new NetworkStack(app, 'NetworkStack', {
 
 // })
