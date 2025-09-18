@@ -42,6 +42,11 @@ diff:
 deploy:
 	@echo "Deploying to $(ENV) environment..."
 	npx cdk deploy --require-approval never
+deploy-iam:
+	@echo "Deploying to $(ENV) environment..."
+	npx cdk deploy IamStack --require-approval never
+
+
 deploy-vpc:
 	@echo "Deploying to $(ENV) environment..."
 	npx cdk deploy NetworkStack --require-approval never
@@ -53,6 +58,12 @@ deploy-eks:
 destroy:
 	@echo "Destroying stack for $(ENV) environment..."
 	npx cdk destroy
+destroy-vpc:
+	@echo "Destroying stack for $(ENV) environment..."
+	npx cdk destroy NetworkStack
+destroy-eks:
+	@echo "Destroying stack for $(ENV) environment..."
+	npx cdk destroy EksStack
 logs:
 	@echo "Fetching Cloudwatch logs..."
 	aws logs describe-log-groups --region $(AWS_REGION)

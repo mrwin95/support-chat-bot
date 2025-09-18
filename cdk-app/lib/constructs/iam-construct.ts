@@ -1,50 +1,162 @@
 import { Construct } from "constructs";
 import * as iam from "aws-cdk-lib/aws-iam";
+import * as ssm from "aws-cdk-lib/aws-ssm";
+import { CfnOutput, Stack } from "aws-cdk-lib";
 
 export interface IamConstructProps {
-  roleName: string;
-  userArns?: string[];
+  adminRoleName: string;
+  workerRoleName: string;
+  ssmPrefix?: string;
+  //   userArns?: string[];
+  importOnly?: boolean; // 👈 new flag to indicate "just import" mode
 }
 export class IamConstruct extends Construct {
-  public readonly eksAdminRole: iam.Role;
-  public readonly workerAdminRole: iam.Role;
+  public readonly adminRole: iam.IRole;
+  public readonly workerRole: iam.IRole;
 
   constructor(scope: Construct, id: string, config: IamConstructProps) {
     super(scope, id);
 
+    const stack = Stack.of(this);
     // EKS admin role
 
-    this.eksAdminRole = new iam.Role(this, "EksAdminRole", {
-      assumedBy: new iam.AccountRootPrincipal(),
-      roleName: config.roleName,
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKSClusterPolicy"),
-        iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKSServicePolicy"),
-        iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"),
-        iam.ManagedPolicy.fromAwsManagedPolicyName("IAMFullAccess"),
-      ],
-    });
+    const contextAdminArn = stack.node.tryGetContext("eksAdminRoleArn");
+    const contextWorkerArn = stack.node.tryGetContext("eksWorkerRoleArn");
 
-    if (config.userArns && config.userArns.length > 0) {
-      this.eksAdminRole.assumeRolePolicy?.addStatements(
-        new iam.PolicyStatement({
-          actions: ["sts:AssumeRole"],
-          principals: config.userArns.map((arn) => new iam.ArnPrincipal(arn)),
-        })
+    if (contextAdminArn && contextWorkerArn) {
+      this.adminRole = iam.Role.fromRoleArn(
+        this,
+        "ImportedAdminRole",
+        contextAdminArn,
+        {
+          mutable: false,
+        }
+      );
+      this.workerRole = iam.Role.fromRoleArn(
+        this,
+        "ImportedWorkerRole",
+        contextWorkerArn,
+        {
+          mutable: false,
+        }
+      );
+
+      return;
+    }
+
+    // try ssm
+    let ssmAdminParam: ssm.IStringParameter | undefined;
+    let ssmWorkerParam: ssm.IStringParameter | undefined;
+
+    if (config.importOnly && config.ssmPrefix) {
+      ssmAdminParam = ssm.StringParameter.fromStringParameterName(
+        this,
+        "EksAdminRoleParam",
+        `${config.ssmPrefix}EksAdminRoleArn`
+      );
+      ssmWorkerParam = ssm.StringParameter.fromStringParameterName(
+        this,
+        "EksWorkerRoleParam",
+        `${config.ssmPrefix}EksWorkerRoleArn`
       );
     }
 
-    // Worker node iam role
+    if (ssmAdminParam && ssmWorkerParam) {
+      this.adminRole = iam.Role.fromRoleArn(
+        this,
+        "ImportedAdminRoleSSM",
+        ssmAdminParam.stringValue,
+        {
+          mutable: false,
+        }
+      );
 
-    this.workerAdminRole = new iam.Role(this, "EksWorkerNodeRole", {
+      this.workerRole = iam.Role.fromRoleArn(
+        this,
+        "ImportedWorkerRoleSSM",
+        ssmWorkerParam.stringValue,
+        {
+          mutable: false,
+        }
+      );
+
+      return;
+    }
+
+    // create admin if nothing exists
+
+    this.adminRole = new iam.Role(this, "EksAdminRole", {
+      roleName: config.adminRoleName,
+      assumedBy: new iam.AccountRootPrincipal(),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"),
+      ],
+    });
+
+    this.workerRole = new iam.Role(this, "EksWorkerRole", {
+      roleName: config.workerRoleName,
       assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKSWorkerNodePolicy"),
-        iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKS_CNI_Policy"),
         iam.ManagedPolicy.fromAwsManagedPolicyName(
           "AmazonEC2ContainerRegistryReadOnly"
         ),
+        iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKS_CNI_Policy"),
       ],
     });
+
+    // store newly create to ARNS
+
+    if (config.ssmPrefix) {
+      new ssm.StringParameter(this, "EksAdminRoleArnParam", {
+        parameterName: `${config.ssmPrefix}EksAdminRoleArn`,
+        stringValue: this.adminRole.roleArn,
+      });
+      new ssm.StringParameter(this, "EksWorkerRoleArnParam", {
+        parameterName: `${config.ssmPrefix}EksWorkerRoleArn`,
+        stringValue: this.workerRole.roleArn,
+      });
+    }
+
+    new CfnOutput(this, "EksAdminRoleArnOutput", {
+      value: this.adminRole.roleArn,
+      exportName: "EksAdminRoleArn",
+    });
+    new CfnOutput(this, "EksWorkerRoleArnOutput", {
+      value: this.workerRole.roleArn,
+      exportName: "EksWorkerRoleArn",
+    });
+    // this.eksAdminRole = new iam.Role(this, "EksAdminRole", {
+    //   assumedBy: new iam.AccountRootPrincipal(),
+    //   roleName: config.roleName,
+    //   managedPolicies: [
+    //     iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKSClusterPolicy"),
+    //     iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKSServicePolicy"),
+    //     iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"),
+    //     iam.ManagedPolicy.fromAwsManagedPolicyName("IAMFullAccess"),
+    //   ],
+    // });
+
+    // if (config.userArns && config.userArns.length > 0) {
+    //   this.eksAdminRole.assumeRolePolicy?.addStatements(
+    //     new iam.PolicyStatement({
+    //       actions: ["sts:AssumeRole"],
+    //       principals: config.userArns.map((arn) => new iam.ArnPrincipal(arn)),
+    //     })
+    //   );
+    // }
+
+    // Worker node iam role
+
+    // this.workerAdminRole = new iam.Role(this, "EksWorkerNodeRole", {
+    //   assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
+    //   managedPolicies: [
+    //     iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKSWorkerNodePolicy"),
+    //     iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKS_CNI_Policy"),
+    //     iam.ManagedPolicy.fromAwsManagedPolicyName(
+    //       "AmazonEC2ContainerRegistryReadOnly"
+    //     ),
+    //   ],
+    // });
   }
 }

@@ -1,14 +1,23 @@
 import { Construct } from "constructs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
-import { INetworkConfig } from "../interfaces/INetworkConfig";
+// import { INetworkConfig } from "../interfaces/INetworkConfig";
 import { Tags } from "aws-cdk-lib";
+
+export interface NetworkConstructProps {
+  cidr: string;
+  publicSubnetCidrs: string[];
+  privateSubnetCidrs: string[];
+  maxAzs: number;
+  natGateways: number; // new: how many NAT gateways you want
+  subnetTags?: { [Key: string]: string };
+}
 
 export class NetworkConstruct extends Construct {
   public readonly vpc: ec2.Vpc;
   public readonly publicSubnets: ec2.ISubnet[] = [];
   public readonly privateSubnets: ec2.ISubnet[] = [];
 
-  constructor(scope: Construct, id: string, config: INetworkConfig) {
+  constructor(scope: Construct, id: string, config: NetworkConstructProps) {
     super(scope, id);
 
     // Base VPC
@@ -21,8 +30,8 @@ export class NetworkConstruct extends Construct {
     });
 
     // apply tag
-    if (config.tags) {
-      for (const [k, v] of Object.entries(config.tags)) {
+    if (config.subnetTags) {
+      for (const [k, v] of Object.entries(config.subnetTags)) {
         Tags.of(this.vpc).add(k, v);
       }
     }
@@ -63,8 +72,11 @@ export class NetworkConstruct extends Construct {
           { key: "Name", value: `public-subnet-${index + 1}` },
           { key: "Environment", value: "dev" },
           { key: "Type", value: "public" },
-          ...(config.tags
-            ? Object.entries(config.tags).map(([k, v]) => ({ key: k, value: v }))
+          ...(config.subnetTags
+            ? Object.entries(config.subnetTags).map(([k, v]) => ({
+                key: k,
+                value: v,
+              }))
             : []),
         ],
       });
@@ -130,8 +142,11 @@ export class NetworkConstruct extends Construct {
           { key: "Name", value: `private-subnet-${index + 1}` },
           { key: "Environment", value: "dev" },
           { key: "Type", value: "private" },
-          ...(config.tags
-            ? Object.entries(config.tags).map(([k, v]) => ({ key: k, value: v }))
+          ...(config.subnetTags
+            ? Object.entries(config.subnetTags).map(([k, v]) => ({
+                key: k,
+                value: v,
+              }))
             : []),
         ],
       });

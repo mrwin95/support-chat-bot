@@ -5,19 +5,24 @@ import * as kubectl33 from "@aws-cdk/lambda-layer-kubectl-v33";
 import * as kubectl32 from "@aws-cdk/lambda-layer-kubectl-v32";
 import * as iam from "aws-cdk-lib/aws-iam";
 
-export interface EksConfig {
+export interface EksConstructProps {
   clusterName: string;
   version: eks.KubernetesVersion;
   desiredCapacity: number;
   instanceType: ec2.InstanceType;
-  workerRole: iam.Role;
-  adminRole: iam.Role;
-  vpcSubnets: ec2.SubnetSelection[];
+  workerRole: iam.IRole;
+  adminRole: iam.IRole;
+  vpcSubnets?: ec2.SubnetSelection[];
 }
 
 export class EksConstruct extends Construct {
   public readonly cluster: eks.Cluster;
-  constructor(scope: Construct, id: string, vpc: ec2.IVpc, config: EksConfig) {
+  constructor(
+    scope: Construct,
+    id: string,
+    vpc: ec2.IVpc,
+    config: EksConstructProps
+  ) {
     super(scope, id);
 
     // EKS cluster
@@ -41,7 +46,7 @@ export class EksConstruct extends Construct {
       minSize: 1,
       maxSize: 4,
       instanceTypes: [config.instanceType],
-      subnets: config.vpcSubnets[0],
+      subnets: config.vpcSubnets ? config.vpcSubnets[0] : undefined,
       amiType: eks.NodegroupAmiType.AL2023_X86_64_STANDARD, // 1.33 //BOTTLEROCKET_X86_64 container
       tags: {
         [`kubernetes.io/cluster/${config.clusterName}`]: "owned",

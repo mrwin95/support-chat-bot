@@ -3,6 +3,7 @@ import * as cdk from "aws-cdk-lib";
 import * as dotenv from "dotenv";
 import { NetworkStack } from "../lib/stacks/network-stack";
 import { EksStack } from "../lib/stacks/eks-stack";
+import { bootstrap } from "../lib/stacks/bootstrap-stack";
 
 dotenv.config({ path: `env/.env.${process.env.ENV || "dev"}` });
 
@@ -13,9 +14,11 @@ const envProps = {
   region: process.env.AWS_REGION,
 };
 
-const networkStack = new NetworkStack(app, "NetworkStack", {
-  env: envProps,
-});
+bootstrap(app, envProps);
+app.synth();
+// const networkStack = new NetworkStack(app, "NetworkStack", {
+//   env: envProps,
+// });
 
 // new EksStack(app, "EksStack", networkStack.network, {
 //   env: envProps,
