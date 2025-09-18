@@ -1,0 +1,1 @@
+# docker compose -f docker-compose-dev-cluster.yaml up -d --force-recreate kafka3-dev
