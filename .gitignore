@@ -1,3 +1,6 @@
 aws-iac-sdk/node_modules
 aws-iac-sdk/dist
 cdk-app/node_modules
+cdk-app/env/.env.dev
+cdk-app/cdk.out
+kafka-docker/data

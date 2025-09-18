@@ -1,0 +1,4 @@
+kafka:
+  clusters:
+    - name: Dev
+      bootstrap-servers: kafka1-dev:9092,kafka2-dev:9092,kafka3-dev:9092
