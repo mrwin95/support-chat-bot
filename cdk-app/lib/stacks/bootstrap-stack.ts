@@ -47,6 +47,7 @@ export function bootstrap(app: App, envProps: {}) {
       cni: true,
       coredns: true,
       kubeProxy: true,
+      podIdentityAgent: true,
       ebsCsi: {
         enable: true,
       },

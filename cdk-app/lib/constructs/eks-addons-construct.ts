@@ -6,6 +6,7 @@ export interface EksAddOnConfig {
   coredns?: boolean;
   kubeProxy?: boolean;
   ebsCsi?: { enable: boolean; serviceAccountRoleArn?: string };
+  podIdentityAgent?: boolean;
   extras?: { name: string; version?: string }[];
 }
 
@@ -40,6 +41,14 @@ export class EksAddOnConstruct extends Construct {
       new eks.CfnAddon(this, "AddonKubeProxy", {
         clusterName: cluster.clusterName,
         addonName: "kube-proxy",
+        resolveConflicts: "OVERWRITE",
+      });
+    }
+
+    if (config.podIdentityAgent) {
+      new eks.CfnAddon(this, "PodIdentityAgentAddon", {
+        clusterName: cluster.clusterName,
+        addonName: "eks-pod-identity-agent",
         resolveConflicts: "OVERWRITE",
       });
     }
