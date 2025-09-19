@@ -3,9 +3,20 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import { CfnOutput, Stack, Tags } from "aws-cdk-lib";
 
+export interface PodIdentityRoleConfig {
+  roleName: string;
+  namespace: string;
+  serviceAccount: string;
+  managedPolicies?: iam.IManagedPolicy[];
+}
 export interface IamConstructProps {
   adminRoleName: string;
   workerRoleName: string;
+  //   podIdentityRoles?: PodIdentityRoleConfig[]; // multiple roles
+  podIdentityRoles?: {
+    roleName: string;
+    managedPolicies?: iam.IManagedPolicy[];
+  }[];
   ssmPrefix?: string;
   //   userArns?: string[];
   importOnly?: boolean; // 👈 new flag to indicate "just import" mode
@@ -14,6 +25,7 @@ export interface IamConstructProps {
 export class IamConstruct extends Construct {
   public readonly adminRole: iam.IRole;
   public readonly workerRole: iam.IRole;
+  public readonly podIdentityRoles: Record<string, iam.IRole> = {};
 
   constructor(scope: Construct, id: string, config: IamConstructProps) {
     super(scope, id);
@@ -97,6 +109,10 @@ export class IamConstruct extends Construct {
     this.workerRole = new iam.Role(this, "EksWorkerRole", {
       roleName: config.workerRoleName,
       assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
+      //   assumedBy: new iam.CompositePrincipal(
+      //     new iam.ServicePrincipal("ec2.amazonaws.com"),
+      //     new iam.ServicePrincipal("pods.eks.amazonaws.com")
+      //   ),
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKSWorkerNodePolicy"),
         iam.ManagedPolicy.fromAwsManagedPolicyName(
@@ -105,6 +121,34 @@ export class IamConstruct extends Construct {
         iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKS_CNI_Policy"),
       ],
     });
+
+    // identity role
+
+    (config.podIdentityRoles ?? []).forEach((roleConfig, i) => {
+      const role = new iam.Role(this, `PodIdentityRole${i}`, {
+        roleName: roleConfig.roleName,
+        assumedBy: new iam.ServicePrincipal("pods.eks.amazonaws.com"), // 👈 strict
+        managedPolicies: roleConfig.managedPolicies ?? [
+          iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonS3ReadOnlyAccess"),
+        ],
+      });
+      this.podIdentityRoles[roleConfig.roleName] = role;
+
+      if (config.ssmPrefix) {
+        new ssm.StringParameter(this, `PodIdentityRoleArnParam${i}`, {
+          parameterName: `${config.ssmPrefix}${roleConfig.roleName}Arn`,
+          stringValue: role.roleArn,
+        });
+      }
+
+      new CfnOutput(this, `PodIdentityRoleArn${i}`, { value: role.roleArn });
+    });
+
+    // if (config.podIdentityRoleName) {
+    //   this.podIdentityRole = new iam.Role(this, "EksPodIdentityRole", {
+
+    //   });
+    // }
 
     // set tags
 
@@ -139,6 +183,7 @@ export class IamConstruct extends Construct {
       value: this.workerRole.roleArn,
       exportName: "EksWorkerRoleArn",
     });
+
     // this.eksAdminRole = new iam.Role(this, "EksAdminRole", {
     //   assumedBy: new iam.AccountRootPrincipal(),
     //   roleName: config.roleName,

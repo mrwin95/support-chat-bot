@@ -5,7 +5,7 @@ import { EksStack } from "./eks-stack";
 import * as eks from "aws-cdk-lib/aws-eks";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import { EksAddOnStack } from "./addons-stack";
-
+import * as iam from "aws-cdk-lib/aws-iam";
 export function bootstrap(app: App, envProps: {}) {
   const ssmPrefix = "/solid/dev/roles/";
   const iamStack = new IamStack(app, "IamStack", {
@@ -14,6 +14,10 @@ export function bootstrap(app: App, envProps: {}) {
     workerRoleName: "EksWorkerRole",
     ssmPrefix,
     importOnly: false,
+    podIdentityRoles: [
+      { roleName: "S3ReaderRole" },
+      { roleName: "DynamoWriterRole" },
+    ],
   });
 
   const networkStack = new NetworkStack(app, "NetworkStack", {
@@ -48,6 +52,20 @@ export function bootstrap(app: App, envProps: {}) {
       coredns: true,
       kubeProxy: true,
       podIdentityAgent: true,
+      podIdentityAssociations: [
+        {
+          role: iamStack.iam.podIdentityRoles["S3ReaderRole"], // iam.IRole
+          namespace: "data-team",
+          serviceAccount: "s3-reader",
+          createServiceAccount: true,
+        },
+        {
+          role: iamStack.iam.podIdentityRoles["DynamoWriterRole"], // iam.IRole
+          namespace: "backend",
+          serviceAccount: "dynamo-writer",
+          createServiceAccount: true,
+        },
+      ],
       ebsCsi: {
         enable: true,
       },
