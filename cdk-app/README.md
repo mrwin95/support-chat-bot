@@ -23,3 +23,21 @@ npm install aws-cdk-lib constructs
 install kubectl Layer
 
 npm install @aws-cdk/lambda-layer-kubectl-v32
+
+command to check arn role 
+
+aws sts get-caller-identity --profile [profile name]
+
+-- you need to update kubectl config to manage your kubelet
+
+aws eks update-kubeconfig --name solid-eks --region ca-central-1 --profile dev-eks-admin
+
+ALB
+
+Hybrid Nginx Ingress behind ALB (AWS ALB)
+
+	•	You keep NGINX for custom ingress logic (e.g., rewrite rules, complex routing).
+	•	An ALB (via AWS Load Balancer Controller) fronts NGINX with an IngressClass alb.
+	•	Requests → ALB → NGINX Service → Pods.
+	•	ALB gives you HTTPS + DNS + scaling, while NGINX handles app-level ingress.
+    

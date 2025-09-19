@@ -60,6 +60,9 @@ deploy-addon:
 deploy-admin-user:
 	@echo "Deploying to $(ENV) environment..."
 	npx cdk deploy EksAdminUserStack --require-approval never
+deploy-ingress:
+	@echo "Deploying to $(ENV) environment..."
+	npx cdk deploy IngressStack --require-approval never
 
 destroy:
 	@echo "Destroying stack for $(ENV) environment..."
@@ -77,6 +80,9 @@ destroy-addon:
 destroy-admin-user:
 	@echo "Destroying stack for $(ENV) environment..."
 	npx cdk destroy EksAdminUserStack
+destroy-ingress:
+	@echo "Destroying stack for $(ENV) environment..."
+	npx cdk destroy IngressStack
 	
 logs:
 	@echo "Fetching Cloudwatch logs..."
