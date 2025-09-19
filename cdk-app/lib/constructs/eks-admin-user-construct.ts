@@ -1,10 +1,11 @@
 import { Construct } from "constructs";
 import * as iam from "aws-cdk-lib/aws-iam";
-import * as cdk from "aws-cdk-lib";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 
 export interface EksAdminUserProps {
   eksAdminRoleArn: string;
-  userName: string;
+  userName?: string;
+  ssmPrefix?: string;
 }
 
 export class EksAdminUserConstruct extends Construct {
@@ -33,11 +34,25 @@ export class EksAdminUserConstruct extends Construct {
 
     this.user.attachInlinePolicy(assumeRolePolicy);
 
+    // store key to ssm
+
     // 3. Access Keys for CLI usage
     this.accessKey = new iam.CfnAccessKey(this, "EksAdminUserAccessKey", {
       userName: this.user.userName,
     });
 
+    if (props.ssmPrefix) {
+      new ssm.StringParameter(this, "EksAdminAccessKeyIdParam", {
+        parameterName: `${props.ssmPrefix}EksAdminUserAccessKeyId`,
+        stringValue: this.accessKey.ref,
+      });
+
+      new ssm.StringParameter(this, "EksAdminSecretKeyParam", {
+        parameterName: `${props.ssmPrefix}EksAdminUserSecretAccessKey`,
+        stringValue: this.accessKey.attrSecretAccessKey,
+      });
+    }
+    /*
     new cdk.CfnOutput(this, "EksAdminUserAccessKeyId", {
       value: this.accessKey.ref,
     });
@@ -45,6 +60,6 @@ export class EksAdminUserConstruct extends Construct {
     new cdk.CfnOutput(this, "EksAdminUserSecretAccessKey", {
       value: this.accessKey.attrSecretAccessKey,
       description: "Save this securely! Will only be shown once.",
-    });
+    });*/
   }
 }

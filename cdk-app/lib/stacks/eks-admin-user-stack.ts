@@ -23,6 +23,7 @@ export class EksAdminUserStack extends Stack {
     new EksAdminUserConstruct(this, "EksAdminUserConstruct", {
       eksAdminRoleArn: eksAdminRoleArn,
       userName: props.userName,
+      ssmPrefix: props.ssmPrefix,
     });
 
     new CfnOutput(this, "EksAdminRoleFromSSM", {
