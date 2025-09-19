@@ -6,6 +6,7 @@ import * as eks from "aws-cdk-lib/aws-eks";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import { EksAddOnStack } from "./addons-stack";
 import * as iam from "aws-cdk-lib/aws-iam";
+import { EksAdminUserStack } from "./eks-admin-user-stack";
 export function bootstrap(app: App, envProps: {}) {
   const ssmPrefix = "/solid/dev/roles/";
   const iamStack = new IamStack(app, "IamStack", {
@@ -71,7 +72,15 @@ export function bootstrap(app: App, envProps: {}) {
       },
     },
   });
+
+  const eksAdminUserStack = new EksAdminUserStack(app, "EksAdminUserStack", {
+    env: envProps,
+    ssmPrefix: "/solid/dev/roles/",
+    userName: "eks-admin-user",
+  });
+
   eksStack.addDependency(iamStack);
   eksStack.addDependency(networkStack);
   addOnStack.addDependency(eksStack);
+  eksAdminUserStack.addDependency(eksStack);
 }

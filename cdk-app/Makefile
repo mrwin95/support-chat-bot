@@ -57,6 +57,9 @@ deploy-eks:
 deploy-addon:
 	@echo "Deploying to $(ENV) environment..."
 	npx cdk deploy EksAddOnStack --require-approval never
+deploy-admin-user:
+	@echo "Deploying to $(ENV) environment..."
+	npx cdk deploy EksAdminUserStack --require-approval never
 
 destroy:
 	@echo "Destroying stack for $(ENV) environment..."
@@ -70,6 +73,11 @@ destroy-eks:
 destroy-addon:
 	@echo "Destroying stack for $(ENV) environment..."
 	npx cdk destroy EksAddOnStack
+
+destroy-admin-user:
+	@echo "Destroying stack for $(ENV) environment..."
+	npx cdk destroy EksAdminUserStack
+	
 logs:
 	@echo "Fetching Cloudwatch logs..."
 	aws logs describe-log-groups --region $(AWS_REGION)
