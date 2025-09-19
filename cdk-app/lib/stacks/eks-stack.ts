@@ -12,6 +12,7 @@ export interface EksStackProps extends StackProps {
 }
 
 export class EksStack extends Stack {
+  public readonly cluster: eks.Cluster;
   constructor(scope: Construct, id: string, props: EksStackProps) {
     super(scope, id, props);
     // IAM Roles
@@ -42,7 +43,7 @@ export class EksStack extends Stack {
       { mutable: false }
     );
     // EKS Cluster + Workers
-    new EksConstruct(this, "Eks", network.vpc, {
+    const { cluster } = new EksConstruct(this, "Eks", network.vpc, {
       ...eksConfig,
       clusterName: "solid-eks",
       version: eks.KubernetesVersion.V1_33,
@@ -50,5 +51,7 @@ export class EksStack extends Stack {
       workerRole: workerRole,
       vpcSubnets: [network.subnetSelections().private],
     });
+
+    this.cluster = cluster;
   }
 }

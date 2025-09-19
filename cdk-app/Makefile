@@ -54,6 +54,9 @@ deploy-vpc:
 deploy-eks:
 	@echo "Deploying to $(ENV) environment..."
 	npx cdk deploy EksStack --require-approval never
+deploy-addon:
+	@echo "Deploying to $(ENV) environment..."
+	npx cdk deploy EksAddOnStack --require-approval never
 
 destroy:
 	@echo "Destroying stack for $(ENV) environment..."
@@ -64,6 +67,9 @@ destroy-vpc:
 destroy-eks:
 	@echo "Destroying stack for $(ENV) environment..."
 	npx cdk destroy EksStack
+destroy-addon:
+	@echo "Destroying stack for $(ENV) environment..."
+	npx cdk destroy EksAddOnStack
 logs:
 	@echo "Fetching Cloudwatch logs..."
 	aws logs describe-log-groups --region $(AWS_REGION)

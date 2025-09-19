@@ -4,6 +4,7 @@ import { IamStack } from "./iam-stack";
 import { EksStack } from "./eks-stack";
 import * as eks from "aws-cdk-lib/aws-eks";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+import { EksAddOnStack } from "./addons-stack";
 
 export function bootstrap(app: App, envProps: {}) {
   const ssmPrefix = "/solid/dev/roles/";
@@ -32,13 +33,26 @@ export function bootstrap(app: App, envProps: {}) {
     network: networkStack.network,
     eksConfig: {
       clusterName: "solid-eks",
-      version: eks.KubernetesVersion.V1_32,
+      version: eks.KubernetesVersion.V1_33,
       desiredCapacity: 1,
       instanceType: new ec2.InstanceType("t3.small"),
     },
     ssmPrefix,
   });
 
+  const addOnStack = new EksAddOnStack(app, "EksAddOnStack", {
+    env: envProps,
+    cluster: eksStack.cluster,
+    addOnConfig: {
+      cni: true,
+      coredns: true,
+      kubeProxy: true,
+      ebsCsi: {
+        enable: true,
+      },
+    },
+  });
   eksStack.addDependency(iamStack);
   eksStack.addDependency(networkStack);
+  addOnStack.addDependency(eksStack);
 }
