@@ -111,10 +111,6 @@ export class IamConstruct extends Construct {
     this.workerRole = new iam.Role(this, "EksWorkerRole", {
       roleName: config.workerRoleName,
       assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
-      //   assumedBy: new iam.CompositePrincipal(
-      //     new iam.ServicePrincipal("ec2.amazonaws.com"),
-      //     new iam.ServicePrincipal("pods.eks.amazonaws.com")
-      //   ),
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKSWorkerNodePolicy"),
         iam.ManagedPolicy.fromAwsManagedPolicyName(
@@ -145,12 +141,6 @@ export class IamConstruct extends Construct {
 
       new CfnOutput(this, `PodIdentityRoleArn${i}`, { value: role.roleArn });
     });
-
-    // if (config.podIdentityRoleName) {
-    //   this.podIdentityRole = new iam.Role(this, "EksPodIdentityRole", {
-
-    //   });
-    // }
 
     // set tags
 
@@ -185,38 +175,5 @@ export class IamConstruct extends Construct {
       value: this.workerRole.roleArn,
       exportName: "EksWorkerRoleArn",
     });
-
-    // this.eksAdminRole = new iam.Role(this, "EksAdminRole", {
-    //   assumedBy: new iam.AccountRootPrincipal(),
-    //   roleName: config.roleName,
-    //   managedPolicies: [
-    //     iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKSClusterPolicy"),
-    //     iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKSServicePolicy"),
-    //     iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"),
-    //     iam.ManagedPolicy.fromAwsManagedPolicyName("IAMFullAccess"),
-    //   ],
-    // });
-
-    // if (config.userArns && config.userArns.length > 0) {
-    //   this.eksAdminRole.assumeRolePolicy?.addStatements(
-    //     new iam.PolicyStatement({
-    //       actions: ["sts:AssumeRole"],
-    //       principals: config.userArns.map((arn) => new iam.ArnPrincipal(arn)),
-    //     })
-    //   );
-    // }
-
-    // Worker node iam role
-
-    // this.workerAdminRole = new iam.Role(this, "EksWorkerNodeRole", {
-    //   assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
-    //   managedPolicies: [
-    //     iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKSWorkerNodePolicy"),
-    //     iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonEKS_CNI_Policy"),
-    //     iam.ManagedPolicy.fromAwsManagedPolicyName(
-    //       "AmazonEC2ContainerRegistryReadOnly"
-    //     ),
-    //   ],
-    // });
   }
 }

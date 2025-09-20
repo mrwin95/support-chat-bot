@@ -26,8 +26,6 @@ export class EksAddOnConstruct extends Construct {
   ) {
     super(scope, id);
 
-    // const versions = getAddonVersions(eks.KubernetesVersion.V1_32);
-
     if (config.cni) {
       new eks.CfnAddon(this, "AddonVpcCni", {
         clusterName: cluster.clusterName,
@@ -59,120 +57,6 @@ export class EksAddOnConstruct extends Construct {
         resolveConflicts: "OVERWRITE",
       });
     }
-
-    // --- Pod Identity Associations ---
-    // (config.podIdentityAssociations ?? []).forEach((assoc, i) => {
-    //   const roleArn =
-    //     typeof assoc.role === "string" ? assoc.role : assoc.role.roleArn;
-
-    //   // optional: create SA first
-    //   if (assoc.createServiceAccount && assoc.serviceAccount !== "default") {
-    //     cluster.addServiceAccount(`${assoc.serviceAccount}ServiceAccount${i}`, {
-    //       name: assoc.serviceAccount,
-    //       namespace: assoc.namespace,
-    //     });
-    //   }
-
-    //   new eks.CfnPodIdentityAssociation(this, `PodIdentityAssoc${i}`, {
-    //     clusterName: cluster.clusterName,
-    //     roleArn,
-    //     namespace: assoc.namespace,
-    //     serviceAccount: assoc.serviceAccount,
-    //   });
-    // });
-
-    // still have bugs
-    // (config.podIdentityAssociations ?? []).forEach((assoc, i) => {
-    //   if (!assoc.role) {
-    //     throw new Error(`PodIdentityAssociation[${i}] has no role defined`);
-    //   }
-    //   // normalize role → always an ARN
-    //   const roleArn =
-    //     typeof assoc.role === "string" ? assoc.role : assoc.role.roleArn;
-
-    //   // --- 1. Namespace ---
-    //   const ns = new eks.KubernetesManifest(this, `Ns-${assoc.namespace}`, {
-    //     cluster,
-    //     manifest: [
-    //       {
-    //         apiVersion: "v1",
-    //         kind: "Namespace",
-    //         metadata: { name: assoc.namespace },
-    //       },
-    //     ],
-    //   });
-
-    //   // ServiceAccount manifest (no cluster.addServiceAccount, avoid cross-stack refs)
-    //   const sa = new eks.KubernetesManifest(
-    //     this,
-    //     `Sa-${assoc.serviceAccount}-${i}`,
-    //     {
-    //       cluster,
-    //       manifest: [
-    //         {
-    //           apiVersion: "v1",
-    //           kind: "ServiceAccount",
-    //           metadata: {
-    //             name: assoc.serviceAccount,
-    //             namespace: assoc.namespace,
-    //           },
-    //         },
-    //       ],
-    //     }
-    //   );
-    //   sa.node.addDependency(ns);
-
-    //   // Pod Identity Association
-    //   const assocRes = new eks.CfnPodIdentityAssociation(
-    //     this,
-    //     `PodIdentityAssoc${i}`,
-    //     {
-    //       clusterName: cluster.clusterName,
-    //       roleArn,
-    //       namespace: assoc.namespace,
-    //       serviceAccount: assoc.serviceAccount,
-    //     }
-    //   );
-
-    //   assocRes.node.addDependency(ns);
-    //   assocRes.node.addDependency(sa);
-
-    //   //   // --- 2. ServiceAccount (depends on Namespace) ---
-    //   //   let saName = assoc.serviceAccount;
-    //   //   let saResource: eks.ServiceAccount | undefined;
-
-    //   //   // optional: create service account first
-    //   //   if (assoc.createServiceAccount && assoc.serviceAccount !== "default") {
-    //   //     saResource = cluster.addServiceAccount(
-    //   //       `${assoc.serviceAccount}ServiceAccount${i}`,
-    //   //       {
-    //   //         name: assoc.serviceAccount,
-    //   //         namespace: assoc.namespace,
-    //   //       }
-    //   //     );
-    //   //     saResource.node.addDependency(ns);
-    //   //     saName = saResource.serviceAccountName;
-    //   //   }
-
-    //   //   // create pod identity association
-    //   //   const assocRes = new eks.CfnPodIdentityAssociation(
-    //   //     this,
-    //   //     `PodIdentityAssoc${i}`,
-    //   //     {
-    //   //       clusterName: cluster.clusterName,
-    //   //       roleArn,
-    //   //       namespace: assoc.namespace,
-    //   //       serviceAccount: saName,
-    //   //     }
-    //   //   );
-    //   //   // always wait for Namespace
-    //   //   assocRes.node.addDependency(ns);
-
-    //   //   // if we created a SA, also wait for SA
-    //   //   if (saResource) {
-    //   //     assocRes.node.addDependency(saResource);
-    //   //   }
-    // });
 
     if (config.ebsCsi?.enable) {
       new eks.CfnAddon(this, "AddonEbsCsi", {
