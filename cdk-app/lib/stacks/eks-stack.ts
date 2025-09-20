@@ -54,10 +54,10 @@ export class EksStack extends Stack {
       vpcSubnets: [network.subnetSelections().private],
     });
 
-    // new ssm.StringParameter(this, "EksOidcProviderArnParam", {
-    //   parameterName: "/solid/dev/eks/oidcProviderArn",
-    //   stringValue: cluster.openIdConnectProvider.openIdConnectProviderArn,
-    // });
+    // const oidcProvider = this.cluster.ad
+    // if (!this.cluster.openIdConnectProvider) {
+    //   throw new Error("OIDC provider is not enabled on this cluster");
+    // }
 
     // After cluster is created in EksStack:
     new ssm.StringParameter(this, "EksOidcProviderArnParam", {

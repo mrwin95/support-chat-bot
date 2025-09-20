@@ -63,6 +63,10 @@ deploy-admin-user:
 deploy-ingress:
 	@echo "Deploying to $(ENV) environment..."
 	npx cdk deploy IngressStack --require-approval never
+deploy-irsa:
+	@echo "Deploying to $(ENV) environment..."
+	npx cdk deploy IrsaRoleStack --require-approval never
+
 
 destroy:
 	@echo "Destroying stack for $(ENV) environment..."

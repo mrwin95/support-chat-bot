@@ -8,6 +8,7 @@ import { EksAddOnStack } from "./addons-stack";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { EksAdminUserStack } from "./eks-admin-user-stack";
 import { IngressStack } from "./ingress-stack";
+import { EksIrsaRoleStack } from "./eks-irsa-role-stack";
 export function bootstrap(app: App, envProps: {}) {
   const ssmPrefix = "/solid/dev/roles/";
   const iamStack = new IamStack(app, "IamStack", {
@@ -76,12 +77,18 @@ export function bootstrap(app: App, envProps: {}) {
 
   const eksAdminUserStack = new EksAdminUserStack(app, "EksAdminUserStack", {
     env: envProps,
-    ssmPrefix: "/solid/dev/roles/",
+    ssmPrefix,
     userName: "eks-admin-user",
   });
 
   const ingressStack = new IngressStack(app, "IngressStack", {
+    env: envProps,
     cluster: eksStack.cluster,
+  });
+
+  const eksIrsaRoleStack = new EksIrsaRoleStack(app, "IrsaRoleStack", {
+    env: envProps,
+    ssmPrefix,
   });
 
   eksStack.addDependency(iamStack);
@@ -89,4 +96,5 @@ export function bootstrap(app: App, envProps: {}) {
   addOnStack.addDependency(eksStack);
   eksAdminUserStack.addDependency(eksStack);
   ingressStack.addDependency(eksStack);
+  eksIrsaRoleStack.addDependency(eksStack);
 }
