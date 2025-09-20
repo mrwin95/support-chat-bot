@@ -4,3 +4,6 @@ cdk-app/node_modules
 cdk-app/env/.env.dev
 cdk-app/cdk.out
 kafka-docker/data
+cdk-app/demo-app/backend/node_modules
+cdk-app/demo-app/frontend/node_modules
+cdk-app/demo-app/.env
