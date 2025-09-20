@@ -8,11 +8,12 @@ metadata:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     # alb.ingress.kubernetes.io/certificate-arn: <your-acm-cert-arn>
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=60
 spec:
   ingressClassName: alb
   rules:
-    - host: backend.zodia.co
+    - host: backend.zodiai.co
       http:
         paths:
           - path: /api

@@ -2,6 +2,7 @@ import { Construct } from "constructs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import { CfnOutput, Stack, Tags } from "aws-cdk-lib";
+import { AlbIamControllerConstruct } from "./alb-iam-controller-construct";
 
 export interface PodIdentityRoleConfig {
   roleName: string;
@@ -26,6 +27,7 @@ export class IamConstruct extends Construct {
   public readonly adminRole: iam.IRole;
   public readonly workerRole: iam.IRole;
   public readonly podIdentityRoles: Record<string, iam.IRole> = {};
+  public readonly albControllerRoleArn: string;
 
   constructor(scope: Construct, id: string, config: IamConstructProps) {
     super(scope, id);

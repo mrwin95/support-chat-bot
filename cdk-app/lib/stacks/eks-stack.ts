@@ -6,6 +6,7 @@ import { NetworkConstruct } from "../constructs/network-construct";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { AlbIngressConstruct } from "../constructs/alb-ingress-construct";
+import { NginxIngressConstruct } from "../constructs/nginx-ingress-construct";
 export interface EksStackProps extends StackProps {
   network: NetworkConstruct;
   eksConfig: Omit<EksConstructProps, "adminRole" | "workerRole" | "vpc">;
@@ -52,6 +53,27 @@ export class EksStack extends Stack {
       workerRole: workerRole,
       vpcSubnets: [network.subnetSelections().private],
     });
+
+    // new ssm.StringParameter(this, "EksOidcProviderArnParam", {
+    //   parameterName: "/solid/dev/eks/oidcProviderArn",
+    //   stringValue: cluster.openIdConnectProvider.openIdConnectProviderArn,
+    // });
+
+    // After cluster is created in EksStack:
+    new ssm.StringParameter(this, "EksOidcProviderArnParam", {
+      parameterName: `${ssmPrefix}OidcProviderArn`,
+      stringValue: cluster.openIdConnectProvider.openIdConnectProviderArn,
+    });
+
+    new ssm.StringParameter(this, "EksOidcProviderIssuerParam", {
+      parameterName: `${ssmPrefix}OidcProviderIssuer`,
+      stringValue: cluster.openIdConnectProvider.openIdConnectProviderIssuer,
+    });
+
+    // new NginxIngressConstruct(this, "IngressConstruct", {
+    //   ssmPrefix: "/solid/dev/roles/",
+    //   cluster: cluster,
+    // });
 
     // start Alb
     // new AlbIngressConstruct(this, "AlbIngress", { cluster });

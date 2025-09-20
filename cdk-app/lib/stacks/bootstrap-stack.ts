@@ -88,5 +88,5 @@ export function bootstrap(app: App, envProps: {}) {
   eksStack.addDependency(networkStack);
   addOnStack.addDependency(eksStack);
   eksAdminUserStack.addDependency(eksStack);
-  ingressStack.addDependency(eksStack);
+  //   ingressStack.addDependency(eksStack);
 }

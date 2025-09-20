@@ -41,3 +41,37 @@ Hybrid Nginx Ingress behind ALB (AWS ALB)
 	•	Requests → ALB → NGINX Service → Pods.
 	•	ALB gives you HTTPS + DNS + scaling, while NGINX handles app-level ingress.
     
+
+check subnet
+
+aws ec2 describe-subnets --region ca-central-1 --profile ausan \
+  --filters "Name=vpc-id,Values=vpc-0ab05a48154ce72cb" \
+  --query "Subnets[*].{ID:SubnetId,AZ:AvailabilityZone,Public:MapPublicIpOnLaunch}" \
+  --output table
+
+
+  create tags
+
+  aws ec2 create-tags \
+  --resources subnet-008782c6923aa7218 subnet-0274eba1934b372ee  --region ca-central-1 --profile ausan \
+  --tags Key=kubernetes.io/role/elb,Value=1 \
+         Key=kubernetes.io/cluster/solid-eks,Value=owned
+
+
+create tags private
+
+aws ec2 create-tags \
+  --resources subnet-09767cf4ce5d988af subnet-0ae8a9c7b0519eb8a --region ca-central-1 --profile ausan \
+  --tags Key=kubernetes.io/role/internal-elb,Value=1 \
+         Key=kubernetes.io/cluster/solid-eks,Value=owned
+
+kubectl delete pods -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+
+
+scale more node
+
+eksctl scale nodegroup \
+  --cluster solid-eks --region ca-central-1 --profile ausan \
+  --name solid-eks-solid-workers \
+  --nodes 2
+  

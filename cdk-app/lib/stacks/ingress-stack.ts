@@ -12,6 +12,7 @@ export class IngressStack extends Stack {
     super(scope, id, props);
 
     new NginxIngressConstruct(this, "IngressConstruct", {
+      ssmPrefix: "/solid/dev/roles/",
       cluster: props.cluster,
     });
   }
