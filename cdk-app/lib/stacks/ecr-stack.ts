@@ -1,12 +1,16 @@
 import { CfnOutput, Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { EcrRepoConstruct } from "../constructs/ecr-repo-construct";
+import { StringParameter } from "aws-cdk-lib/aws-ssm";
 
+export interface EcrStackProps extends StackProps {
+  ssmPrefix: string;
+}
 export class EcrStack extends Stack {
   public readonly backendRepoUri: string;
   public readonly frontendRepoUri: string;
 
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: Construct, id: string, props: EcrStackProps) {
     super(scope, id, props);
 
     const backendRepo = new EcrRepoConstruct(this, "BackendRepo", {
@@ -22,12 +26,23 @@ export class EcrStack extends Stack {
     this.backendRepoUri = backendRepo.repository.registryUri;
     this.frontendRepoUri = frontendRepo.repository.registryUri;
 
-    new CfnOutput(this, "BackendRepoUri", {
-      value: this.backendRepoUri,
+    new StringParameter(this, "BackendRepoUri", {
+      stringValue: this.backendRepoUri,
+      parameterName: `${props.ssmPrefix}backendRepoUri`,
     });
 
-    new CfnOutput(this, "FrontendRepoUri", {
-      value: this.frontendRepoUri,
+    new StringParameter(this, "FrontendRepoUri", {
+      stringValue: this.backendRepoUri,
+      parameterName: `${props.ssmPrefix}frontendRepoUri`,
     });
+
+    // new ssm.StringParameter(this, "");
+    // new CfnOutput(this, "BackendRepoUri", {
+    //   value: this.backendRepoUri,
+    // });
+
+    // new CfnOutput(this, "FrontendRepoUri", {
+    //   value: this.frontendRepoUri,
+    // });
   }
 }

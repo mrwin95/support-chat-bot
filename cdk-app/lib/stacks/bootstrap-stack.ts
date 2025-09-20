@@ -5,13 +5,14 @@ import { EksStack } from "./eks-stack";
 import * as eks from "aws-cdk-lib/aws-eks";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import { EksAddOnStack } from "./addons-stack";
-import * as iam from "aws-cdk-lib/aws-iam";
+
 import { EksAdminUserStack } from "./eks-admin-user-stack";
 import { IngressStack } from "./ingress-stack";
 import { EksIrsaRoleStack } from "./eks-irsa-role-stack";
 import { EcrStack } from "./ecr-stack";
 export function bootstrap(app: App, envProps: {}) {
   const ssmPrefix = "/solid/dev/roles/";
+  const ssmPrefixEcr = "/solid/dev/ecr/";
   const iamStack = new IamStack(app, "IamStack", {
     env: envProps,
     adminRoleName: "EksAdminRole",
@@ -94,6 +95,7 @@ export function bootstrap(app: App, envProps: {}) {
 
   const ecrStack = new EcrStack(app, "EcrStack", {
     env: envProps,
+    ssmPrefix: ssmPrefixEcr,
   });
 
   eksStack.addDependency(iamStack);
