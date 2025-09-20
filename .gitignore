@@ -7,3 +7,4 @@ kafka-docker/data
 cdk-app/demo-app/backend/node_modules
 cdk-app/demo-app/frontend/node_modules
 cdk-app/demo-app/.env
+aws-iac-sdk/.env
