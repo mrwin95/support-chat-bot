@@ -66,6 +66,9 @@ deploy-ingress:
 deploy-irsa:
 	@echo "Deploying to $(ENV) environment..."
 	npx cdk deploy IrsaRoleStack --require-approval never
+deploy-ecr:
+	@echo "Deploying to $(ENV) environment..."
+	npx cdk deploy EcrStack --require-approval never
 
 
 destroy:

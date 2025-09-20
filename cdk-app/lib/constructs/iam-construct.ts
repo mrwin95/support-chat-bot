@@ -13,13 +13,11 @@ export interface PodIdentityRoleConfig {
 export interface IamConstructProps {
   adminRoleName: string;
   workerRoleName: string;
-  //   podIdentityRoles?: PodIdentityRoleConfig[]; // multiple roles
   podIdentityRoles?: {
     roleName: string;
     managedPolicies?: iam.IManagedPolicy[];
   }[];
   ssmPrefix?: string;
-  //   userArns?: string[];
   importOnly?: boolean; // 👈 new flag to indicate "just import" mode
   roleTags?: { [Key: string]: string };
 }
