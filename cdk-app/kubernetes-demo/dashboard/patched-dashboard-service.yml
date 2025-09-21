@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+spec:
+  ports:
+    - port: 80 # 👈 ALB talks HTTP here
+      targetPort: 8443 # 👈 dashboard container listens TLS 8443
+      protocol: TCP
+  selector:
+    k8s-app: kubernetes-dashboard

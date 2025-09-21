@@ -82,6 +82,9 @@ kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
   curl -v http://backend-service.ingress-nginx.svc.cluster.local:80
 
 
+kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
+  curl -v http://kubernetes-dashboard.kubernetes-dashboard.svc.cluster.local:80
+
   check ingress
 
   kubectl describe ingress demo-ingress -n demo-app-ns
@@ -105,3 +108,12 @@ kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
 
   kubectl get sa aws-load-balancer-controller -n kube-system -o yaml
   
+  install dashboard
+
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+
+
+  get loigin info
+
+  kubectl -n kubernetes-dashboard create token admin-user
+
