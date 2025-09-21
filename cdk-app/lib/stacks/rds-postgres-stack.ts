@@ -1,5 +1,4 @@
 import { Stack, StackProps } from "aws-cdk-lib";
-import * as ec2 from "aws-cdk-lib/aws-ec2";
 import { Construct } from "constructs";
 import { RdsPostgresConstruct } from "../constructs/rds-postgres-construct";
 import { NetworkConstruct } from "../constructs/network-construct";
@@ -15,6 +14,8 @@ export class RdsPostgresStack extends Stack {
 
     const { ssmPrefix, network } = props;
     new RdsPostgresConstruct(this, "PostgresRds", {
+      dbIdentifier: "solid-postgres-db",
+      securityGroupName: "solid-rds-postgres-sg",
       ssmPrefix,
       vpc: props.network.vpc,
       dbName: "solidapp",

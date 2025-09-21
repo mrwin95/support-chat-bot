@@ -17,13 +17,17 @@ export interface RdsPostgresProps {
   multiAz?: boolean;
   removalPolicy?: RemovalPolicy;
   privateSubnets: ec2.ISubnet[]; // 👈 full control (subnets from your Network stack)
+  dbIdentifier: string;
   //   subnetType?: ec2.SubnetType;
+  allowedSecurityGroups?: ec2.ISecurityGroup[];
+  securityGroupName: string;
 }
 
 export class RdsPostgresConstruct extends Construct {
   //   public readonly instance: rds.DatabaseInstance;
   public readonly secret: secretsmanager.ISecret;
   public readonly instance: rds.DatabaseInstance;
+  public readonly securityGroup: ec2.SecurityGroup;
   //   public readonly proxy: rds.DatabaseProxy;
   //   public readonly sa: eks.ServiceAccount;
   constructor(scope: Construct, id: string, props: RdsPostgresProps) {
@@ -33,6 +37,7 @@ export class RdsPostgresConstruct extends Construct {
       vpc,
       privateSubnets,
       dbName = "appdb",
+      dbIdentifier,
       instanceType = ec2.InstanceType.of(
         ec2.InstanceClass.T3,
         ec2.InstanceSize.SMALL
@@ -40,6 +45,7 @@ export class RdsPostgresConstruct extends Construct {
       allocatedStorage = 50,
       multiAz = false,
       removalPolicy = RemovalPolicy.DESTROY,
+      allowedSecurityGroups = [],
     } = props;
 
     // genrate master user
@@ -53,6 +59,21 @@ export class RdsPostgresConstruct extends Construct {
       },
     });
 
+    this.securityGroup = new ec2.SecurityGroup(this, "PostgresSG", {
+      vpc,
+      description: "Security group for PostgresSQL RDS",
+      allowAllOutbound: true,
+      securityGroupName: props.securityGroupName
+    });
+
+    // allow inbound
+    allowedSecurityGroups.forEach((sg, idx) => {
+      this.securityGroup.addIngressRule(
+        sg,
+        ec2.Port.tcp(5432),
+        `Allow Postgres access from SG ${idx}`
+      );
+    });
     const subnetGroup = new rds.SubnetGroup(this, "PostgresSubnetGroup", {
       description: "Private subnets for postgresql",
       vpc,
@@ -64,6 +85,7 @@ export class RdsPostgresConstruct extends Construct {
       engine: rds.DatabaseInstanceEngine.postgres({
         version: rds.PostgresEngineVersion.VER_17,
       }),
+      instanceIdentifier: dbIdentifier,
       vpc,
       vpcSubnets: { subnets: privateSubnets },
       subnetGroup,
@@ -72,6 +94,7 @@ export class RdsPostgresConstruct extends Construct {
       instanceType,
       multiAz,
       publiclyAccessible: false,
+      securityGroups: [this.securityGroup],
       backupRetention: Duration.days(1),
       deleteAutomatedBackups: true,
       removalPolicy,
