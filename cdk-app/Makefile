@@ -69,6 +69,9 @@ deploy-irsa:
 deploy-ecr:
 	@echo "Deploying to $(ENV) environment..."
 	npx cdk deploy EcrStack --require-approval never
+deploy-sg:
+	@echo "Deploying to $(ENV) environment..."
+	npx cdk deploy EksSG --require-approval never
 
 deploy-postgres:
 	@echo "Deploying to $(ENV) environment..."

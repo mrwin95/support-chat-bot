@@ -59,11 +59,24 @@ export class RdsPostgresConstruct extends Construct {
       },
     });
 
+    // allow postgres access from eks
+
+    const workerSgId = StringParameter.valueForStringParameter(
+      this,
+      `${props.ssmPrefix}`
+    );
+
+    const workerSg = ec2.SecurityGroup.fromSecurityGroupId(
+      this,
+      "ImportedWorkerSG",
+      workerSgId
+    );
+
     this.securityGroup = new ec2.SecurityGroup(this, "PostgresSG", {
       vpc,
       description: "Security group for PostgresSQL RDS",
       allowAllOutbound: true,
-      securityGroupName: props.securityGroupName
+      securityGroupName: props.securityGroupName,
     });
 
     // allow inbound
@@ -74,6 +87,12 @@ export class RdsPostgresConstruct extends Construct {
         `Allow Postgres access from SG ${idx}`
       );
     });
+
+    this.securityGroup.addIngressRule(
+      workerSg,
+      ec2.Port.tcp(5432),
+      "Allow Postgres from EKS nodes"
+    );
     const subnetGroup = new rds.SubnetGroup(this, "PostgresSubnetGroup", {
       description: "Private subnets for postgresql",
       vpc,

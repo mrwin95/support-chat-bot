@@ -11,10 +11,13 @@ import { EksAdminUserStack } from "./eks-admin-user-stack";
 import { IngressStack } from "./ingress-stack";
 import { EksIrsaRoleStack } from "./eks-irsa-role-stack";
 import { EcrStack } from "./ecr-stack";
+import { EksSecurityGroupStack } from "./eks-security-group-stack";
 export function bootstrap(app: App, envProps: {}) {
   const ssmPrefix = "/solid/dev/roles/";
   const ssmPrefixEcr = "/solid/dev/ecr/";
   const ssmPrefixRds = "/solid/dev/rds/";
+  const ssmPrefixSg = "/solid/dev/sg/";
+  const ssmPrefixVpc = "/solid/dev/vpc/";
   const iamStack = new IamStack(app, "IamStack", {
     env: envProps,
     adminRoleName: "EksAdminRole",
@@ -37,7 +40,14 @@ export function bootstrap(app: App, envProps: {}) {
     subnetTags: {
       Environment: "dev",
     },
+    ssmPrefix: ssmPrefixVpc,
   });
+
+  //   const eksSG = new EksSecurityGroupStack(app, "EksSG", {
+  //     ssmPrefix: ssmPrefixSg,
+  //     vpc: networkStack.network.vpc,
+  //     securityGroupName: "solid-worker-sg",
+  //   });
 
   const eksStack = new EksStack(app, "EksStack", {
     env: envProps,

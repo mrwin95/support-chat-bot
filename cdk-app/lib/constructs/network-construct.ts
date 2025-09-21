@@ -10,6 +10,7 @@ export interface NetworkConstructProps {
   maxAzs: number;
   natGateways: number; // new: how many NAT gateways you want
   subnetTags?: { [Key: string]: string };
+  ssmPrefix: string;
 }
 
 export class NetworkConstruct extends Construct {
