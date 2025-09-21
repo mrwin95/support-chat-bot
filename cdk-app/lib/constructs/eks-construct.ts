@@ -1,12 +1,12 @@
-import { StringParameter } from "aws-cdk-lib/aws-ssm";
+// import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as eks from "aws-cdk-lib/aws-eks";
 import * as kubectl33 from "@aws-cdk/lambda-layer-kubectl-v33";
-import * as kubectl32 from "@aws-cdk/lambda-layer-kubectl-v32";
+// import * as kubectl32 from "@aws-cdk/lambda-layer-kubectl-v32";
 import * as iam from "aws-cdk-lib/aws-iam";
-import { EksSecurityGroupConstruct } from "./eks-security-group-construct";
-import { Fn } from "aws-cdk-lib";
+// import { EksSecurityGroupConstruct } from "./eks-security-group-construct";
+// import { Fn } from "aws-cdk-lib";
 
 export interface EksConstructProps {
   clusterName: string;
@@ -17,12 +17,13 @@ export interface EksConstructProps {
   adminRole: iam.IRole;
   vpcSubnets?: ec2.SubnetSelection[];
   workerNodeNameTag?: string;
-  //   eksNodeSg: EksSecurityGroupConstruct;
+  eksNodeSg?: ec2.ISecurityGroup;
   ssmPrefix?: string;
 }
 
 export class EksConstruct extends Construct {
   public readonly cluster: eks.Cluster;
+  //   public readonly eksNodeSg: ec2.ISecurityGroup;
   constructor(
     scope: Construct,
     id: string,
@@ -39,22 +40,23 @@ export class EksConstruct extends Construct {
       defaultCapacity: 0,
       kubectlLayer: new kubectl33.KubectlV33Layer(this, "KubectlV33Layer"),
       vpcSubnets: config.vpcSubnets,
+      securityGroup: config.eksNodeSg,
     });
 
     // map iam admin role to kubernetes
     this.cluster.awsAuth.addMastersRole(config.adminRole);
     // node group
 
-    const workerSgId = StringParameter.valueForStringParameter(
-      this,
-      `${config.ssmPrefix}EksNodeSgId`
-    );
+    // const workerSgId = StringParameter.valueForStringParameter(
+    //   this,
+    //   `${config.ssmPrefix}EksNodeSgId`
+    // );
 
-    const workerSg = ec2.SecurityGroup.fromSecurityGroupId(
-      this,
-      "ImportedEksNodeSG",
-      workerSgId
-    );
+    // const workerSg = ec2.SecurityGroup.fromSecurityGroupId(
+    //   this,
+    //   "ImportedEksNodeSG",
+    //   workerSgId
+    // );
 
     this.cluster.addNodegroupCapacity("EksWorkers", {
       nodegroupName: `${config.clusterName}-solid-workers`,
@@ -71,14 +73,18 @@ export class EksConstruct extends Construct {
       },
       remoteAccess: {
         sshKeyName: "worker-key",
-        sourceSecurityGroups: [workerSg],
+        ...(config.eksNodeSg
+          ? { sourceSecurityGroups: [config.eksNodeSg] }
+          : {}),
       },
     });
 
-    this.cluster.clusterSecurityGroup.addIngressRule(
-      workerSg,
-      ec2.Port.allTraffic(),
-      "Allow traffic between EKS cluster and worker nodes"
-    );
+    if (config.eksNodeSg) {
+      this.cluster.clusterSecurityGroup.addIngressRule(
+        config.eksNodeSg,
+        ec2.Port.allTraffic(),
+        "Allow traffic between EKS cluster and worker nodes"
+      );
+    }
   }
 }

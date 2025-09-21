@@ -1,5 +1,5 @@
 import { Stack } from "aws-cdk-lib";
-import { IVpc, SecurityGroup, Vpc } from "aws-cdk-lib/aws-ec2";
+import { IVpc, Port, SecurityGroup, Vpc } from "aws-cdk-lib/aws-ec2";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 
@@ -7,6 +7,7 @@ export interface EksSecurityGroupProps {
   ssmPrefix: string;
   securityGroupName: string;
   vpc: IVpc;
+  description?: string;
 }
 
 export class EksSecurityGroupConstruct extends Construct {
@@ -15,26 +16,33 @@ export class EksSecurityGroupConstruct extends Construct {
   constructor(scope: Construct, id: string, props: EksSecurityGroupProps) {
     super(scope, id);
 
-    const { ssmPrefix } = props;
+    const { vpc, ssmPrefix, description, securityGroupName } = props;
 
-    const vpcId = StringParameter.valueForStringParameter(
-      this,
-      `${ssmPrefix}VpcId`
-    );
+    // const vpcId = StringParameter.valueForStringParameter(
+    //   this,
+    //   `${ssmPrefix}VpcId`
+    // );
     // const vpc = Vpc.fromVpcAttributes(this, "ImportedVpc", {
     //   vpcId,
     // });
-    this.securityGroup = new SecurityGroup(this, "EksNodeSG", {
-      vpc: props.vpc,
-      description: "Security group for eks worker node",
+    this.securityGroup = new SecurityGroup(this, "EksAdditionalSG", {
+      vpc,
+      description: "Additional SG for EKS workloads",
       allowAllOutbound: true,
-      securityGroupName: props.securityGroupName,
+      securityGroupName: props.securityGroupName ?? "EksAdditionalSG",
     });
 
-    // export
+    // allow all traffic inside node to node
+    this.securityGroup.addIngressRule(
+      this.securityGroup,
+      Port.allTraffic(),
+      "Allow node-to-node communication"
+    );
 
-    new StringParameter(this, "EksNodeSGId", {
-      parameterName: `${ssmPrefix}EksNodeSgId`,
+    // export SG ID to SSM for reuse in other stacks
+
+    new StringParameter(this, "EksAdditionalSGIdParam", {
+      parameterName: `${ssmPrefix}EksAdditionalSGId`,
       stringValue: this.securityGroup.securityGroupId,
     });
   }

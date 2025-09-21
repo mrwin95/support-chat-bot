@@ -1,10 +1,12 @@
 import { Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { EksConstruct, EksConstructProps } from "../constructs/eks-construct";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as eks from "aws-cdk-lib/aws-eks";
 import { NetworkConstruct } from "../constructs/network-construct";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as iam from "aws-cdk-lib/aws-iam";
+
 export interface EksStackProps extends StackProps {
   network: NetworkConstruct;
   eksConfig: Omit<EksConstructProps, "adminRole" | "workerRole" | "vpc">;
@@ -13,6 +15,7 @@ export interface EksStackProps extends StackProps {
 
 export class EksStack extends Stack {
   public readonly cluster: eks.Cluster;
+
   constructor(scope: Construct, id: string, props: EksStackProps) {
     super(scope, id, props);
     // IAM Roles
@@ -42,6 +45,17 @@ export class EksStack extends Stack {
       workerArn.stringValue,
       { mutable: false }
     );
+
+    const sgId = ssm.StringParameter.valueForStringParameter(
+      this,
+      `${props.ssmPrefix}EksAdditionalSGId`
+    );
+    const eksSg = ec2.SecurityGroup.fromSecurityGroupId(
+      this,
+      "ImportedEksSG",
+      sgId
+    );
+
     // EKS Cluster + Workers
     const { cluster } = new EksConstruct(this, "Eks", network.vpc, {
       ...eksConfig,
@@ -50,6 +64,7 @@ export class EksStack extends Stack {
       adminRole: adminRole,
       workerRole: workerRole,
       vpcSubnets: [network.subnetSelections().private],
+      eksNodeSg: eksSg,
     });
 
     // const oidcProvider = this.cluster.ad

@@ -61,16 +61,26 @@ export class RdsPostgresConstruct extends Construct {
 
     // allow postgres access from eks
 
-    const workerSgId = StringParameter.valueForStringParameter(
+    const sgId = StringParameter.valueForStringParameter(
       this,
-      `${props.ssmPrefix}`
+      `${props.ssmPrefix}EksAdditionalSGId`
+    );
+    const eksSg = ec2.SecurityGroup.fromSecurityGroupId(
+      this,
+      "ImportedEksSG",
+      sgId
     );
 
-    const workerSg = ec2.SecurityGroup.fromSecurityGroupId(
-      this,
-      "ImportedWorkerSG",
-      workerSgId
-    );
+    // const workerSgId = StringParameter.valueForStringParameter(
+    //   this,
+    //   `${props.ssmPrefix}`
+    // );
+
+    // const workerSg = ec2.SecurityGroup.fromSecurityGroupId(
+    //   this,
+    //   "ImportedWorkerSG",
+    //   workerSgId
+    // );
 
     this.securityGroup = new ec2.SecurityGroup(this, "PostgresSG", {
       vpc,
@@ -89,7 +99,7 @@ export class RdsPostgresConstruct extends Construct {
     });
 
     this.securityGroup.addIngressRule(
-      workerSg,
+      eksSg,
       ec2.Port.tcp(5432),
       "Allow Postgres from EKS nodes"
     );

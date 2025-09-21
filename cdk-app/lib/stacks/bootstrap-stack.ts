@@ -43,11 +43,11 @@ export function bootstrap(app: App, envProps: {}) {
     ssmPrefix: ssmPrefixVpc,
   });
 
-  //   const eksSG = new EksSecurityGroupStack(app, "EksSG", {
-  //     ssmPrefix: ssmPrefixSg,
-  //     vpc: networkStack.network.vpc,
-  //     securityGroupName: "solid-worker-sg",
-  //   });
+  const eksSG = new EksSecurityGroupStack(app, "EksSG", {
+    ssmPrefix: ssmPrefixVpc,
+    vpcId: networkStack.network.vpc.vpcId,
+    securityGroupName: "EksAdditionalSG",
+  });
 
   const eksStack = new EksStack(app, "EksStack", {
     env: envProps,
@@ -111,7 +111,7 @@ export function bootstrap(app: App, envProps: {}) {
   });
 
   const rdsPostgresStack = new RdsPostgresStack(app, "RdsPostgresStack", {
-    ssmPrefix: ssmPrefixRds,
+    ssmPrefix: "/solid/dev/vpc/",
     env: envProps,
     network: networkStack.network,
   });
