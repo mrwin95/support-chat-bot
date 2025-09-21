@@ -2,7 +2,6 @@ import { Construct } from "constructs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import { CfnOutput, Stack, Tags } from "aws-cdk-lib";
-import { AlbIamControllerConstruct } from "./alb-iam-controller-construct";
 
 export interface PodIdentityRoleConfig {
   roleName: string;

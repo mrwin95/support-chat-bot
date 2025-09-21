@@ -52,14 +52,5 @@ export class EksAdminUserConstruct extends Construct {
         stringValue: this.accessKey.attrSecretAccessKey,
       });
     }
-    /*
-    new cdk.CfnOutput(this, "EksAdminUserAccessKeyId", {
-      value: this.accessKey.ref,
-    });
-
-    new cdk.CfnOutput(this, "EksAdminUserSecretAccessKey", {
-      value: this.accessKey.attrSecretAccessKey,
-      description: "Save this securely! Will only be shown once.",
-    });*/
   }
 }

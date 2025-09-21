@@ -35,14 +35,5 @@ export class EcrStack extends Stack {
       stringValue: this.backendRepoUri,
       parameterName: `${props.ssmPrefix}frontendRepoUri`,
     });
-
-    // new ssm.StringParameter(this, "");
-    // new CfnOutput(this, "BackendRepoUri", {
-    //   value: this.backendRepoUri,
-    // });
-
-    // new CfnOutput(this, "FrontendRepoUri", {
-    //   value: this.frontendRepoUri,
-    // });
   }
 }

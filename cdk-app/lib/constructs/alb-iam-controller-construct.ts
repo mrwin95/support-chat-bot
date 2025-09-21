@@ -67,42 +67,5 @@ export class AlbIamControllerConstruct extends Construct {
       parameterName: `${props.ssmPrefix}AlbControllerRoleArn`,
       stringValue: albControllerRole.role.roleArn,
     });
-
-    // new CfnOutput(this, "AlbControllerRoleArnOutput", {
-    //   value: albControllerRole.role.roleArn,
-    //   exportName: "AlbControllerRoleArn",
-    // });
-
-    // this.role = new iam.Role(this, "AlbControllerRole", {
-    //   roleName: props.roleName ?? "AwsLoadBalancerControllerRole",
-    //   assumedBy: new iam.ServicePrincipal("pods.eks.amazonaws.com"),
-    // });
-
-    // Attach inline policy (based on AWS docs)
-    // this.role.addToPrincipalPolicy(
-    //   new iam.PolicyStatement({
-    //     actions: [
-    //       "acm:DescribeCertificate",
-    //       "acm:ListCertificates",
-    //       "acm:GetCertificate",
-    //       "ec2:AuthorizeSecurityGroupIngress",
-    //       "ec2:CreateSecurityGroup",
-    //       "ec2:CreateTags",
-    //       "ec2:DeleteTags",
-    //       "ec2:DeleteSecurityGroup",
-    //       "ec2:Describe*",
-    //       "ec2:Modify*",
-    //       "elasticloadbalancing:*",
-    //       "iam:CreateServiceLinkedRole",
-    //       "iam:GetServerCertificate",
-    //       "iam:ListServerCertificates",
-    //       "iam:PassRole",
-    //       "waf-regional:*",
-    //       "wafv2:*",
-    //       "shield:*",
-    //     ],
-    //     resources: ["*"],
-    //   })
-    // );
   }
 }

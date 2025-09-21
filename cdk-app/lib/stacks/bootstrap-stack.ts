@@ -1,3 +1,4 @@
+import { RdsPostgresStack } from "./rds-postgres-stack";
 import { App } from "aws-cdk-lib";
 import { NetworkStack } from "./network-stack";
 import { IamStack } from "./iam-stack";
@@ -13,6 +14,7 @@ import { EcrStack } from "./ecr-stack";
 export function bootstrap(app: App, envProps: {}) {
   const ssmPrefix = "/solid/dev/roles/";
   const ssmPrefixEcr = "/solid/dev/ecr/";
+  const ssmPrefixRds = "/solid/dev/rds/";
   const iamStack = new IamStack(app, "IamStack", {
     env: envProps,
     adminRoleName: "EksAdminRole",
@@ -96,6 +98,12 @@ export function bootstrap(app: App, envProps: {}) {
   const ecrStack = new EcrStack(app, "EcrStack", {
     env: envProps,
     ssmPrefix: ssmPrefixEcr,
+  });
+
+  const rdsPostgresStack = new RdsPostgresStack(app, "RdsPostgresStack", {
+    ssmPrefix: ssmPrefixRds,
+    env: envProps,
+    network: networkStack.network,
   });
 
   eksStack.addDependency(iamStack);

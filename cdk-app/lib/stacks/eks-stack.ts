@@ -5,8 +5,6 @@ import * as eks from "aws-cdk-lib/aws-eks";
 import { NetworkConstruct } from "../constructs/network-construct";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as iam from "aws-cdk-lib/aws-iam";
-import { AlbIngressConstruct } from "../constructs/alb-ingress-construct";
-import { NginxIngressConstruct } from "../constructs/nginx-ingress-construct";
 export interface EksStackProps extends StackProps {
   network: NetworkConstruct;
   eksConfig: Omit<EksConstructProps, "adminRole" | "workerRole" | "vpc">;

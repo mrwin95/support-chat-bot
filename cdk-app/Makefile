@@ -70,6 +70,9 @@ deploy-ecr:
 	@echo "Deploying to $(ENV) environment..."
 	npx cdk deploy EcrStack --require-approval never
 
+deploy-postgres:
+	@echo "Deploying to $(ENV) environment..."
+	npx cdk deploy RdsPostgresStack --require-approval never
 
 destroy:
 	@echo "Destroying stack for $(ENV) environment..."
