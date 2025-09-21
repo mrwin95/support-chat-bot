@@ -75,3 +75,33 @@ eksctl scale nodegroup \
   --name solid-eks-solid-workers \
   --nodes 2
   
+
+test pod on eks
+
+kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
+  curl -v http://backend-service.ingress-nginx.svc.cluster.local:80
+
+
+  check ingress
+
+  kubectl describe ingress demo-ingress -n demo-app-ns
+
+  chekc alb
+
+  kubectl logs -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+
+  aply 
+
+  Ensure Kubernetes RBAC is applied
+
+  kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+
+  delete alb pods
+
+  kubectl delete pod -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+
+
+  check sa
+
+  kubectl get sa aws-load-balancer-controller -n kube-system -o yaml
+  

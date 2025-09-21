@@ -37,9 +37,18 @@ export class EksIrsaRoleStack extends Stack {
       policyStatements: [
         new iam.PolicyStatement({
           actions: [
-            "elasticloadbalancing:*",
-            "ec2:Describe*",
             "ec2:AuthorizeSecurityGroupIngress",
+            "ec2:CreateSecurityGroup",
+            "ec2:DeleteSecurityGroup",
+            "ec2:AuthorizeSecurityGroupIngress",
+            "ec2:RevokeSecurityGroupIngress",
+            "shield:GetSubscriptionState",
+            "shield:DescribeProtection",
+            "shield:CreateProtection",
+            "shield:DeleteProtection",
+            "shield:DescribeSubscription",
+            "ec2:*",
+            "elasticloadbalancing:*",
           ],
           resources: ["*"],
         }),
