@@ -15,6 +15,7 @@ export interface EksStackProps extends StackProps {
 
 export class EksStack extends Stack {
   public readonly cluster: eks.Cluster;
+  public readonly clusterName: string;
 
   constructor(scope: Construct, id: string, props: EksStackProps) {
     super(scope, id, props);
@@ -48,7 +49,8 @@ export class EksStack extends Stack {
 
     const sgId = ssm.StringParameter.valueForStringParameter(
       this,
-      `${props.ssmPrefix}EksAdditionalSGId`
+      //   `${props.ssmPrefix}EksAdditionalSGId`
+      `/solid/dev/vpc/EksAdditionalSGId`
     );
     const eksSg = ec2.SecurityGroup.fromSecurityGroupId(
       this,
@@ -59,7 +61,7 @@ export class EksStack extends Stack {
     // EKS Cluster + Workers
     const { cluster } = new EksConstruct(this, "Eks", network.vpc, {
       ...eksConfig,
-      clusterName: "solid-eks",
+      clusterName: this.clusterName,
       version: eks.KubernetesVersion.V1_33,
       adminRole: adminRole,
       workerRole: workerRole,

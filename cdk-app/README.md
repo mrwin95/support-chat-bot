@@ -117,3 +117,8 @@ kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
 
   kubectl -n kubernetes-dashboard create token admin-user
 
+
+how to check rds endpoint
+
+kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup solid-postgres-db.c7s8g0yemi5k.ca-central-1.rds.amazonaws.com
+

@@ -18,6 +18,8 @@ export function bootstrap(app: App, envProps: {}) {
   const ssmPrefixRds = "/solid/dev/rds/";
   const ssmPrefixSg = "/solid/dev/sg/";
   const ssmPrefixVpc = "/solid/dev/vpc/";
+  const clusterName = "solid-eks";
+
   const iamStack = new IamStack(app, "IamStack", {
     env: envProps,
     adminRoleName: "EksAdminRole",
@@ -53,10 +55,10 @@ export function bootstrap(app: App, envProps: {}) {
     env: envProps,
     network: networkStack.network,
     eksConfig: {
-      clusterName: "solid-eks",
       version: eks.KubernetesVersion.V1_33,
       desiredCapacity: 1,
       instanceType: new ec2.InstanceType("t3.small"),
+      clusterName: clusterName,
     },
     ssmPrefix,
   });
